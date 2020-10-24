@@ -87,7 +87,7 @@
 		<HBox spacing="10" GridPane.rowIndex="3">
 			<children>
 				<Text fx:id="messages" />
-				<Button text="%start" />
+				<Button text="%start" onAction="#process"/>
 				<RadioButton fx:id="radioYear" text="%radio.year">
 					<toggleGroup>
 						<ToggleGroup fx:id="radio" />
