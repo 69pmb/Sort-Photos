@@ -1,16 +1,34 @@
 package pmb.sort.photos;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.TimeZone;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifDirectoryBase;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -18,11 +36,13 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
-import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import pmb.my.starter.utils.MyConstant;
+import pmb.my.starter.utils.MyFileUtils;
 import pmb.my.starter.utils.MyProperties;
 
 public class Controller implements Initializable {
+    private static final Logger LOG = LogManager.getLogger(Controller.class);
     @FXML
     private GridPane container;
     @FXML
@@ -63,11 +83,14 @@ public class Controller implements Initializable {
 
     @FXML
     private void selectDirectory() {
-        DirectoryChooser dirChooser = new DirectoryChooser();
+        FileChooser dirChooser = new FileChooser();
         dirChooser.setTitle(resources.getString("directory.chooser.title"));
         dirChooser.setInitialDirectory(selectedDir);
-        selectedDir = dirChooser.showDialog(container.getScene().getWindow());
+        selectedDir = dirChooser.showOpenDialog(container.getScene().getWindow());
         if (selectedDir != null) {
+            if (selectedDir.isFile()) {
+                selectedDir = selectedDir.getParentFile();
+            }
             displayDir.setText(selectedDir.getAbsolutePath());
             detectFolder();
         }
@@ -111,6 +134,70 @@ public class Controller implements Initializable {
             .forEach(e -> MyProperties.set(e.getValue().getValue(), e.getKey().getText()));
             MyProperties.save();
             detectFolder();
+        }
+    }
+
+    @FXML
+    private void process() {
+        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
+        SimpleDateFormat yearSdf = new SimpleDateFormat(yearFormat.getText());
+        SimpleDateFormat monthSdf = new SimpleDateFormat(monthFormat.getText());
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(dateFormat.getText());
+        DateTimeFormatter yearDtf = DateTimeFormatter.ofPattern(yearFormat.getText());
+        DateTimeFormatter monthDtf = DateTimeFormatter.ofPattern(monthFormat.getText());
+        List<String> extentions = Arrays.asList(ArrayUtils.addAll(StringUtils.split(pictureExtention.getText(), ","),
+                StringUtils.split(videoExtention.getText(), ",")));
+        MyFileUtils.listFilesInFolder(selectedDir, extentions, false).forEach(file -> {
+            String absolutePath = file.getAbsolutePath();
+            try {
+                Metadata metadata = ImageMetadataReader.readMetadata(file);
+                Directory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+                String newName;
+                String yearFolder;
+                String monthFolder;
+                if (directory != null) {
+                    Date takenTime = directory.getDate(ExifDirectoryBase.TAG_DATETIME_ORIGINAL, TimeZone.getDefault());
+                    newName = sdf.format(takenTime);
+                    yearFolder = yearSdf.format(takenTime);
+                    monthFolder = monthSdf.format(takenTime);
+                    LOG.info("file {} taken at {}", file.getName(), newName);
+                } else {
+                    LocalDateTime creationDate = MyFileUtils.getCreationDate(file);
+                    newName = creationDate.format(dtf);
+                    yearFolder = creationDate.format(yearDtf);
+                    monthFolder = creationDate.format(monthDtf);
+                    LOG.info("Pas d'exif {}, creation date {}", absolutePath, newName);
+                }
+                renameFile(file, newName, yearFolder, monthFolder);
+            } catch (ImageProcessingException | IOException e) {
+                LOG.error("Error reading metadata of file: {}", absolutePath);
+            }
+        });
+    }
+
+    private void renameFile(File file, String newName, String yearFolder, String monthFolder) throws IOException {
+        String absolutePath = file.getAbsolutePath();
+        String extention = StringUtils.lowerCase(StringUtils.substringAfterLast(absolutePath, MyConstant.DOT));
+        String newFilename = newName + MyConstant.DOT + extention;
+        String newPath;
+
+        if (radioRoot.isSelected()) {
+            String yearPath = selectedDir.getAbsolutePath() + MyConstant.FS + yearFolder;
+            String monthPath = yearPath + MyConstant.FS + monthFolder;
+            MyFileUtils.createFolderIfNotExists(yearPath);
+            MyFileUtils.createFolderIfNotExists(monthPath);
+            newPath = monthPath + MyConstant.FS + newFilename;
+        } else if (radioYear.isSelected()) {
+            MyFileUtils.createFolderIfNotExists(selectedDir.getAbsolutePath() + MyConstant.FS + monthFolder);
+            newPath = selectedDir.getAbsolutePath() + MyConstant.FS + monthFolder + MyConstant.FS + newFilename;
+        } else {
+            newPath = selectedDir.getAbsolutePath() + MyConstant.FS + newFilename;
+        }
+
+        LOG.info("Path {}", newPath);
+        File newFile = new File(newPath);
+        if (!newFile.exists()) {
+            Files.move(file.toPath(), newFile.toPath());
         }
     }
 
