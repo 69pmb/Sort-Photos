@@ -2,4 +2,9 @@
   -fx-text-box-border: red ;
   -fx-focus-color: red ;
 }
-    
+
+.box {
+  -fx-border-width: 3.0px;
+  -fx-border-style: solid;
+  -fx-border-color: #5a5b5c;
+}
