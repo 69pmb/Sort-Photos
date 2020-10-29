@@ -30,7 +30,7 @@ public final class MiscUtils {
 
     private static final Logger LOG = LogManager.getLogger(MiscUtils.class);
 
-    private static final Pattern REGEX_EXTENTION = Pattern.compile("^(\\w+,)+\\w+$");
+    private static final Pattern REGEX_EXTENTION = Pattern.compile("^\\w(\\w+,)+\\w+$");
     public static final Predicate<TextField> isBlank = f -> StringUtils.isBlank(f.getText());
     public static final Predicate<TextField> invalidCharacters = f -> Arrays.stream(MyConstant.getForbiddenCharactersFilename())
             .anyMatch(s -> f.getText().contains(s));
