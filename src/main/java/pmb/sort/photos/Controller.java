@@ -4,11 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -162,22 +160,20 @@ public class Controller
         SimpleDateFormat monthSdf = new SimpleDateFormat(monthFormat.getText());
         List<String> extentions = Arrays
                 .asList(ArrayUtils.addAll(StringUtils.split(pictureExtention.getText(), ","), StringUtils.split(videoExtention.getText(), ",")));
-        MyFileUtils.listFilesInFolder(selectedDir, extentions, false).forEach(file -> {
-            Date date = MiscUtils.getTakenTime(file).orElseGet(() -> MyFileUtils.getCreationDate(file));
+        MyFileUtils.listFilesInFolder(selectedDir, extentions, false).stream().map(Picture::new).forEach(picture -> {
+            Date date = picture.getTaken().orElse(picture.getCreation());
             String newName = sdf.format(date);
             try {
-                renameFile(file, newName, yearSdf.format(date), monthSdf.format(date));
+                renameFile(picture, newName, yearSdf.format(date), monthSdf.format(date));
             } catch (IOException e) {
-                throw new MinorException("Error when renaming file " + file.getAbsolutePath() + " to " + newName, e);
+                throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
             }
         });
         LOG.debug("End process");
     }
 
-    private void renameFile(File file, String newName, String yearFolder, String monthFolder) throws IOException {
-        String absolutePath = file.getAbsolutePath();
-        String extention = StringUtils.lowerCase(StringUtils.substringAfterLast(absolutePath, MyConstant.DOT));
-        String newFilename = newName + MyConstant.DOT + extention;
+    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder) throws IOException {
+        String newFilename = newName + MyConstant.DOT + picture.getExtention();
         String newPath;
 
         if (radioRoot.isSelected()) {
@@ -195,32 +191,44 @@ public class Controller
         }
 
         File newFile = new File(newPath);
-        if (!StringUtils.equals(newPath, absolutePath) && !Files.isSameFile(file.toPath(), newFile.toPath())) {
-            LOG.info("Path {}", newPath);
+        if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
+                StringUtils.substringBeforeLast(picture.getPath(), SUFFIX_SEPARATOR))) {
+            LOG.info("New path {}", newPath);
             if (!newFile.exists()) {
-                Files.move(file.toPath(), newFile.toPath());
-            } else {
-                duplicateDialog(file, absolutePath, extention, newPath, newFile);
+                Files.move(picture.toPath(), newFile.toPath());
+            } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
+                duplicateDialog(picture, picture.getPath(), picture.getExtention(), newPath, new Picture(newFile));
             }
         }
     }
 
-    private void duplicateDialog(File file, String absolutePath, String extention, String newPath, File newFile) throws IOException {
+    private void duplicateDialog(Picture picture, String absolutePath, String extention, String newPath, Picture newPicture) {
         LOG.debug("Start duplicateDialog");
         Stage dialog = new Stage();
         dialog.initOwner(container.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
-        gridPane.add(JavaFxUtils.displayPicture(file, CSS_CLASS_BOX, 600), 1, 1);
-        gridPane.add(JavaFxUtils.displayPicture(newFile, CSS_CLASS_BOX, 600), 2, 1);
-        gridPane.add(buildDetails(file), 1, 2);
-        gridPane.add(buildDetails(newFile), 2, 2);
+        gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), CSS_CLASS_BOX, 600), 1, 1);
+        gridPane.add(JavaFxUtils.displayPicture(newPicture.getPath(), CSS_CLASS_BOX, 600), 2, 1);
+        Text details = buildDetails(picture);
+        gridPane.add(details, 1, 2);
+        Text newDetails = buildDetails(newPicture);
+        gridPane.add(newDetails, 2, 2);
 
         // Buttons
         HBox hBox = new HBox();
-        hBox.getChildren().add(new Text(bundle.getString("duplicate.warning")));
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.cancel"), e -> dialog.close());
+        String msg;
+        if (picture.equals(newPicture)) {
+            msg = bundle.getString("duplicate.warning.equals");
+        } else {
+            msg = bundle.getString("duplicate.warning");
+        }
+        hBox.getChildren().add(new Text(msg));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.cancel"), e -> {
+            LOG.debug("Do nothing");
+            dialog.close();
+        });
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"), e -> {
             try {
                 LOG.debug("Overwrite");
@@ -241,7 +249,7 @@ public class Controller
             try {
                 LOG.debug("Suffix");
                 dialog.close();
-                Files.move(file.toPath(), renamedFile.toPath());
+                Files.move(picture.toPath(), renamedFile.toPath());
             } catch (IOException e1) {
                 throw new MinorException("Error when moving file " + absolutePath + " to " + newPath, e1);
             }
@@ -256,20 +264,20 @@ public class Controller
         LOG.debug("End duplicateDialog");
     }
 
-    public Text buildDescriptions(File file) throws IOException {
+    private Text buildDetails(Picture picture) {
         Text text = new Text();
         text.setWrappingWidth(400);
         text.setTextAlignment(TextAlignment.JUSTIFY);
-        BasicFileAttributes basic = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-        Function<Instant, String> format = date -> DateFormat.getInstance().format(Date.from(date));
+        Function<Date, String> format = date -> DateFormat.getInstance().format(date);
         List<String> sb = new ArrayList<>();
         BiConsumer<String, String> append = (key, value) -> sb.add(bundle.getString(key) + ": " + value);
-        append.accept("duplicate.creation_date", format.apply(basic.creationTime().toInstant()));
-        append.accept("duplicate.modification_date", format.apply(basic.lastModifiedTime().toInstant()));
-        append.accept("duplicate.taken_time", MiscUtils.getTakenTime(file).map(Date::toInstant).map(format::apply).orElse("Not Found"));
-        append.accept("duplicate.model", MiscUtils.getModel(file).orElse("Unknown"));
-        append.accept("duplicate.size", (basic.size() / 1024) + " KB");
-        text.setText(sb.stream().collect(Collectors.joining("\n")));
+        append.accept("duplicate.name", picture.getName());
+        append.accept("duplicate.creation_date", format.apply(picture.getCreation()));
+        append.accept("duplicate.modification_date", format.apply(picture.getModified()));
+        append.accept("duplicate.taken_time", picture.getTaken().map(format::apply).orElse("Not Found"));
+        append.accept("duplicate.model", picture.getModel());
+        append.accept("duplicate.size", picture.getSize());
+        text.setText(sb.stream().collect(Collectors.joining(MyConstant.NEW_LINE)));
         return text;
     }
 
