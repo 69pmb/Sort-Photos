@@ -1,6 +1,5 @@
 package pmb.sort.photos;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,17 +20,17 @@ public final class JavaFxUtils {
         throw new AssertionError("Must not be used");
     }
 
-    public static BorderPane displayPicture(File file, String styleClass, Integer width) {
+    public static BorderPane displayPicture(String absolutePath, String styleClass, Integer width) {
         ImageView imageView = new ImageView();
         BorderPane imageViewWrapper = new BorderPane(imageView);
-        try (InputStream stream = new FileInputStream(file)) {
+        try (InputStream stream = new FileInputStream(absolutePath)) {
             Image image = new Image(stream);
             imageView.setImage(image);
             imageView.setFitWidth(width);
             imageView.setPreserveRatio(true);
             imageViewWrapper.getStyleClass().add(styleClass);
         } catch (IOException e) {
-            throw new MinorException("Error when displaying picture " + file.getAbsolutePath(), e);
+            throw new MinorException("Error when displaying picture " + absolutePath, e);
         }
         return imageViewWrapper;
     }
