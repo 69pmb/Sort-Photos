@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -46,6 +47,9 @@ public class Controller
         implements Initializable {
 
     private static final Logger LOG = LogManager.getLogger(Controller.class);
+    private static final String SUFFIX_SEPARATOR = "-";
+    private static final String CSS_CLASS_ERROR = "error";
+    private static final String CSS_CLASS_BOX = "box";
     @FXML
     private GridPane container;
     @FXML
@@ -80,7 +84,7 @@ public class Controller
                 pictureExtention, Property.PICTURE_EXTENTION, videoExtention, Property.VIDEO_EXTENTION);
         properties.forEach((field, prop) -> field.setText(MiscUtils.getDefaultValue(prop)));
         selectedDir = MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).map(File::new).filter(File::exists)
-                .orElse(new File(MyConstant.USER_DIRECTORY));
+                .orElseGet(() -> new File(MyConstant.USER_DIRECTORY));
         displayDir.setText(selectedDir.getAbsolutePath());
         detectFolder();
         LOG.debug("End initialize");
@@ -121,9 +125,9 @@ public class Controller
                 .filter(MiscUtils.validDateFormat.negate().or(MiscUtils.invalidCharacters)).collect(Collectors.toList());
         List<TextField> invalidExtentions = List.of(pictureExtention, videoExtention).stream()
                 .filter(MiscUtils.validExtention.negate().or(MiscUtils.invalidCharacters)).collect(Collectors.toList());
-        fields.get().forEach(f -> f.getStyleClass().remove("error"));
+        fields.get().forEach(f -> f.getStyleClass().remove(CSS_CLASS_ERROR));
         Stream.of(blanks, invalidDates, invalidExtentions).flatMap(List::stream).collect(Collectors.toSet())
-                .forEach(f -> f.getStyleClass().add("error"));
+                .forEach(f -> f.getStyleClass().add(CSS_CLASS_ERROR));
 
         List<String> messages = new ArrayList<>();
         if (!blanks.isEmpty()) {
@@ -208,10 +212,12 @@ public class Controller
         dialog.initModality(Modality.APPLICATION_MODAL);
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
-        gridPane.add(JavaFxUtils.displayPicture(file, "box", 600), 1, 1);
-        gridPane.add(JavaFxUtils.displayPicture(newFile, "box", 600), 2, 1);
-        gridPane.add(buildDescriptions(file), 1, 2);
-        gridPane.add(buildDescriptions(newFile), 2, 2);
+        gridPane.add(JavaFxUtils.displayPicture(file, CSS_CLASS_BOX, 600), 1, 1);
+        gridPane.add(JavaFxUtils.displayPicture(newFile, CSS_CLASS_BOX, 600), 2, 1);
+        gridPane.add(buildDetails(file), 1, 2);
+        gridPane.add(buildDetails(newFile), 2, 2);
+
+        // Buttons
         HBox hBox = new HBox();
         hBox.getChildren().add(new Text(bundle.getString("duplicate.warning")));
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.cancel"), e -> dialog.close());
@@ -219,7 +225,7 @@ public class Controller
             try {
                 LOG.debug("Overwrite");
                 dialog.close();
-                Files.move(file.toPath(), newFile.toPath());
+                Files.move(picture.toPath(), newPicture.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e1) {
                 throw new MinorException("Error when moving file " + absolutePath + " to " + newPath, e1);
             }
@@ -228,7 +234,8 @@ public class Controller
             Integer index = 1;
             File renamedFile;
             do {
-                renamedFile = new File(StringUtils.substringBeforeLast(newPath, MyConstant.DOT) + "-" + index + MyConstant.DOT + extention);
+                renamedFile = new File(
+                        StringUtils.substringBeforeLast(newPath, MyConstant.DOT) + SUFFIX_SEPARATOR + index + MyConstant.DOT + extention);
                 index++;
             } while (renamedFile.exists());
             try {
@@ -240,6 +247,7 @@ public class Controller
             }
         });
         hBox.setSpacing(10);
+
         gridPane.add(hBox, 1, 3);
         Scene scene = new Scene(gridPane);
         scene.getStylesheets().add(Controller.class.getResource("application.css").toExternalForm());
