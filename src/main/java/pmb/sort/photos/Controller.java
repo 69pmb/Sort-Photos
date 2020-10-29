@@ -74,6 +74,7 @@ public class Controller
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        LOG.debug("Start initialize");
         this.bundle = resources;
         properties = Map.of(dateFormat, Property.DATE_FORMAT, yearFormat, Property.YEAR_FOLDER_FORMAT, monthFormat, Property.MONTH_FOLDER_FORMAT,
                 pictureExtention, Property.PICTURE_EXTENTION, videoExtention, Property.VIDEO_EXTENTION);
@@ -82,31 +83,38 @@ public class Controller
                 .orElse(new File(MyConstant.USER_DIRECTORY));
         displayDir.setText(selectedDir.getAbsolutePath());
         detectFolder();
+        LOG.debug("End initialize");
     }
 
     @FXML
-    private void selectDirectory() {
+    public void selectDirectory() {
+        LOG.debug("Start selectDirectory");
         FileChooser dirChooser = new FileChooser();
         dirChooser.setTitle(bundle.getString("directory.chooser.title"));
         dirChooser.setInitialDirectory(selectedDir);
         selectedDir = dirChooser.showOpenDialog(container.getScene().getWindow());
         if (selectedDir != null) {
+            LOG.debug("A directory was selected");
             if (selectedDir.isFile()) {
                 selectedDir = selectedDir.getParentFile();
             }
             displayDir.setText(selectedDir.getAbsolutePath());
             detectFolder();
         }
+        LOG.debug("End selectDirectory");
     }
 
     @FXML
-    private void saveDefaultDir() {
+    public void saveDefaultDir() {
+        LOG.debug("Start saveDefaultDir");
         MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), displayDir.getText());
         MyProperties.save();
+        LOG.debug("End saveDefaultDir");
     }
 
     @FXML
-    private void saveProperties() {
+    public void saveProperties() {
+        LOG.debug("Start saveProperties");
         Supplier<Stream<TextField>> fields = () -> properties.keySet().stream().filter(k -> !displayDir.equals(k));
         List<TextField> blanks = fields.get().filter(MiscUtils.isBlank).collect(Collectors.toList());
         List<TextField> invalidDates = List.of(dateFormat, yearFormat, monthFormat).stream()
@@ -129,18 +137,22 @@ public class Controller
         }
 
         if (!messages.isEmpty()) {
+            LOG.debug("Incorrect inputs");
             messageProperties.setText(bundle.getString("warning") + StringUtils.join(messages, ","));
         } else {
+            LOG.debug("Save properties");
             messageProperties.setText(bundle.getString("properties.saved"));
             properties.entrySet().stream().filter(e -> e.getValue() != Property.DEFAULT_WORKING_DIR)
                     .forEach(e -> MyProperties.set(e.getValue().getValue(), e.getKey().getText()));
             MyProperties.save();
             detectFolder();
         }
+        LOG.debug("End saveProperties");
     }
 
     @FXML
-    private void process() {
+    public void process() {
+        LOG.debug("Start process");
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
         SimpleDateFormat yearSdf = new SimpleDateFormat(yearFormat.getText());
         SimpleDateFormat monthSdf = new SimpleDateFormat(monthFormat.getText());
@@ -149,13 +161,13 @@ public class Controller
         MyFileUtils.listFilesInFolder(selectedDir, extentions, false).forEach(file -> {
             Date date = MiscUtils.getTakenTime(file).orElseGet(() -> MyFileUtils.getCreationDate(file));
             String newName = sdf.format(date);
-            LOG.debug("File {} taken at {}", file.getName(), newName);
             try {
                 renameFile(file, newName, yearSdf.format(date), monthSdf.format(date));
             } catch (IOException e) {
                 throw new MinorException("Error when renaming file " + file.getAbsolutePath() + " to " + newName, e);
             }
         });
+        LOG.debug("End process");
     }
 
     private void renameFile(File file, String newName, String yearFolder, String monthFolder) throws IOException {
@@ -190,6 +202,7 @@ public class Controller
     }
 
     private void duplicateDialog(File file, String absolutePath, String extention, String newPath, File newFile) throws IOException {
+        LOG.debug("Start duplicateDialog");
         Stage dialog = new Stage();
         dialog.initOwner(container.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -204,6 +217,7 @@ public class Controller
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.cancel"), e -> dialog.close());
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"), e -> {
             try {
+                LOG.debug("Overwrite");
                 dialog.close();
                 Files.move(file.toPath(), newFile.toPath());
             } catch (IOException e1) {
@@ -218,6 +232,7 @@ public class Controller
                 index++;
             } while (renamedFile.exists());
             try {
+                LOG.debug("Suffix");
                 dialog.close();
                 Files.move(file.toPath(), renamedFile.toPath());
             } catch (IOException e1) {
@@ -230,6 +245,7 @@ public class Controller
         scene.getStylesheets().add(Controller.class.getResource("application.css").toExternalForm());
         dialog.setScene(scene);
         dialog.showAndWait();
+        LOG.debug("End duplicateDialog");
     }
 
     public Text buildDescriptions(File file) throws IOException {
@@ -250,6 +266,7 @@ public class Controller
     }
 
     private void detectFolder() {
+        LOG.debug("Start detectFolder");
         if (MiscUtils.validateDate(yearFormat.getText(), selectedDir.getName())) {
             radioYear.setSelected(true);
         } else if (MiscUtils.validateDate(monthFormat.getText(), selectedDir.getName())) {
@@ -257,6 +274,7 @@ public class Controller
         } else {
             radioRoot.setSelected(true);
         }
+        LOG.debug("End detectFolder");
     }
 
 }
