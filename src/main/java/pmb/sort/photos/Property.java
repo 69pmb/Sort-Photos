@@ -5,8 +5,12 @@ import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 
 public enum Property {
-    DEFAULT_WORKING_DIR("default_working_dir"), PICTURE_EXTENTION("picture_extention"),
-    VIDEO_EXTENTION("video_extention"), DATE_FORMAT("date_format"), YEAR_FOLDER_FORMAT("year_folder_format"),
+
+    DEFAULT_WORKING_DIR("default_working_dir"),
+    PICTURE_EXTENSION("picture_extension"),
+    VIDEO_EXTENSION("video_extension"),
+    DATE_FORMAT("date_format"),
+    YEAR_FOLDER_FORMAT("year_folder_format"),
     MONTH_FOLDER_FORMAT("month_folder_format");
 
     private final String value;
