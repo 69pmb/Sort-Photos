@@ -13,13 +13,13 @@
     <children>
         <HBox spacing="10" GridPane.rowIndex="1">
             <children>
-                <TextField fx:id="displayDir" prefHeight="31.0" prefWidth="400">
+                <TextField fx:id="selectedDir" prefHeight="31.0" prefWidth="400">
                     <HBox.margin>
                         <Insets left="10.0" />
                     </HBox.margin>
                 </TextField>
                 <Button alignment="CENTER" mnemonicParsing="false" onAction="#selectDirectory" text="%browse" />
-                <Button alignment="CENTER" mnemonicParsing="false" onAction="#saveDefaultDir"
+                <Button fx:id="saveDirBtn" alignment="CENTER" mnemonicParsing="false" onAction="#saveDefaultDir"
                     text="%directory.chooser.save" />
             </children>
         </HBox>
@@ -68,7 +68,7 @@
         <HBox spacing="10" GridPane.rowIndex="3">
             <children>
                 <Text fx:id="messages" />
-                <Button text="%start" onAction="#process" />
+                <Button fx:id="goBtn" text="%start" onAction="#process" />
                 <RadioButton fx:id="radioYear" text="%radio.year">
                     <toggleGroup>
                         <ToggleGroup fx:id="radio" />
