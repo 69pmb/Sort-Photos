@@ -12,6 +12,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import pmb.my.starter.exception.MinorException;
 
 public final class JavaFxUtils {
@@ -41,6 +43,13 @@ public final class JavaFxUtils {
         button.setOnAction(action::handle);
         parent.getChildren().add(button);
         return button;
+    }
+
+    public static Text buildText(String str, int wrappingWidth) {
+        Text text = new Text(str);
+        text.setWrappingWidth(wrappingWidth);
+        text.setTextAlignment(TextAlignment.JUSTIFY);
+        return text;
     }
 
 }
