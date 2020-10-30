@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,6 +29,7 @@ import org.apache.logging.log4j.Logger;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -56,7 +58,7 @@ public class Controller
     @FXML
     private GridPane container;
     @FXML
-    private TextField displayDir;
+    private TextField selectedDir;
     @FXML
     private TextField dateFormat;
     @FXML
@@ -71,7 +73,10 @@ public class Controller
     private RadioButton radioMonth;
     @FXML
     private RadioButton radioRoot;
-    private File selectedDir;
+    @FXML
+    private Button saveDirBtn;
+    @FXML
+    private Button goBtn;
     private ResourceBundle bundle;
     private Map<TextField, Property> properties;
 
@@ -81,11 +86,27 @@ public class Controller
         this.bundle = resources;
         properties = Map.of(dateFormat, Property.DATE_FORMAT, pictureExtension, Property.PICTURE_EXTENSION, videoExtension, Property.VIDEO_EXTENSION);
         properties.forEach((field, prop) -> field.setText(MiscUtils.getDefaultValue(prop)));
-        selectedDir = MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).map(File::new).filter(File::exists)
-                .orElseGet(() -> new File(MyConstant.USER_DIRECTORY));
-        displayDir.setText(selectedDir.getAbsolutePath());
+        selectedDir.setText(
+                MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists()).orElse(MyConstant.USER_DIRECTORY));
+        selectedDir.setOnKeyReleased(e -> ifValidSelectedDirectory(() -> {}));
         detectFolder();
         LOG.debug("End initialize");
+    }
+
+    private void ifValidSelectedDirectory(Runnable action) {
+        String dir = selectedDir.getText();
+        File file = new File(dir);
+        if (StringUtils.isNotBlank(dir) && file.exists()) {
+            selectedDir.getStyleClass().removeAll(CSS_CLASS_ERROR);
+            goBtn.setDisable(false);
+            saveDirBtn.setDisable(false);
+            detectFolder();
+            action.run();
+        } else {
+            selectedDir.getStyleClass().add(CSS_CLASS_ERROR);
+            goBtn.setDisable(true);
+            saveDirBtn.setDisable(true);
+        }
     }
 
     @FXML
@@ -93,15 +114,20 @@ public class Controller
         LOG.debug("Start selectDirectory");
         FileChooser dirChooser = new FileChooser();
         dirChooser.setTitle(bundle.getString("directory.chooser.title"));
-        dirChooser.setInitialDirectory(selectedDir);
-        selectedDir = dirChooser.showOpenDialog(container.getScene().getWindow());
-        if (selectedDir != null) {
+        dirChooser.setInitialDirectory(new File(selectedDir.getText()));
+        File dir = dirChooser.showOpenDialog(container.getScene().getWindow());
+        if (dir != null) {
             LOG.debug("A directory was selected");
-            if (selectedDir.isFile()) {
-                selectedDir = selectedDir.getParentFile();
+            if (dir.isFile()) {
+                dir = dir.getParentFile();
             }
-            displayDir.setText(selectedDir.getAbsolutePath());
+            selectedDir.setText(dir.getAbsolutePath());
+            goBtn.setDisable(false);
+            saveDirBtn.setDisable(false);
             detectFolder();
+        } else {
+            goBtn.setDisable(true);
+            saveDirBtn.setDisable(true);
         }
         LOG.debug("End selectDirectory");
     }
@@ -109,15 +135,17 @@ public class Controller
     @FXML
     public void saveDefaultDir() {
         LOG.debug("Start saveDefaultDir");
-        MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), displayDir.getText());
-        MyProperties.save();
+        ifValidSelectedDirectory(() -> {
+            MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), selectedDir.getText());
+            MyProperties.save();
+        });
         LOG.debug("End saveDefaultDir");
     }
 
     @FXML
     public void saveProperties() {
         LOG.debug("Start saveProperties");
-        Supplier<Stream<TextField>> fields = () -> properties.keySet().stream().filter(k -> !displayDir.equals(k));
+        Supplier<Stream<TextField>> fields = () -> properties.keySet().stream().filter(Predicate.not(selectedDir::equals));
         List<TextField> blanks = fields.get().filter(MiscUtils.isBlank).collect(Collectors.toList());
         Optional<TextField> invalidDate = Optional.of(dateFormat).filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
         List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
@@ -139,9 +167,11 @@ public class Controller
 
         if (!messages.isEmpty()) {
             LOG.debug("Incorrect inputs");
+            goBtn.setDisable(true);
             messageProperties.setText(bundle.getString("warning") + StringUtils.join(messages, ","));
         } else {
             LOG.debug("Save properties");
+            goBtn.setDisable(false);
             messageProperties.setText(bundle.getString("properties.saved"));
             properties.entrySet().stream().filter(e -> e.getValue() != Property.DEFAULT_WORKING_DIR)
                     .forEach(e -> MyProperties.set(e.getValue().getValue(), e.getKey().getText()));
@@ -157,7 +187,7 @@ public class Controller
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
         List<String> extensions = Arrays
                 .asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), ","), StringUtils.split(videoExtension.getText(), ",")));
-        MyFileUtils.listFilesInFolder(selectedDir, extensions, false).stream().map(Picture::new).forEach(picture -> {
+        MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false).stream().map(Picture::new).forEach(picture -> {
             Date date = picture.getTaken().orElse(picture.getCreation());
             String newName = sdf.format(date);
             try {
@@ -184,7 +214,7 @@ public class Controller
             MyFileUtils.createFolderIfNotExists(monthPath);
             newPath = monthPath + MyConstant.FS + newFilename;
         } else {
-            newPath = selectedDir.getAbsolutePath() + MyConstant.FS + newFilename;
+            newPath = selectedDir.getText() + MyConstant.FS + newFilename;
         }
 
         File newFile = new File(newPath);
@@ -280,9 +310,10 @@ public class Controller
 
     private void detectFolder() {
         LOG.debug("Start detectFolder");
-        if (MiscUtils.isValidRegex.test(selectedDir.getName(), YEAR_REGEX)) {
+        File folder = new File(selectedDir.getText());
+        if (MiscUtils.isValidRegex.test(folder.getName(), YEAR_REGEX)) {
             radioYear.setSelected(true);
-        } else if (MiscUtils.isValidRegex.test(selectedDir.getName(), MONTH_REGEX)) {
+        } else if (MiscUtils.isValidRegex.test(folder.getName(), MONTH_REGEX)) {
             radioMonth.setSelected(true);
         } else {
             radioRoot.setSelected(true);
