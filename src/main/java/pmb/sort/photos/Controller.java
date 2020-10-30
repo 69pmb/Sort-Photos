@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -35,7 +32,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -248,10 +244,8 @@ public class Controller
         gridPane.setHgap(10);
         gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), CSS_CLASS_BOX, 600), 1, 1);
         gridPane.add(JavaFxUtils.displayPicture(newPicture.getPath(), CSS_CLASS_BOX, 600), 2, 1);
-        Text details = buildDetails(picture);
-        gridPane.add(details, 1, 2);
-        Text newDetails = buildDetails(newPicture);
-        gridPane.add(newDetails, 2, 2);
+        gridPane.add(JavaFxUtils.buildText(picture.prettyPrint(bundle), 400), 1, 2);
+        gridPane.add(JavaFxUtils.buildText(newPicture.prettyPrint(bundle), 400), 2, 2);
 
         // Buttons
         HBox hBox = new HBox();
@@ -299,23 +293,6 @@ public class Controller
         dialog.setScene(scene);
         dialog.showAndWait();
         LOG.debug("End duplicateDialog");
-    }
-
-    private Text buildDetails(Picture picture) {
-        Text text = new Text();
-        text.setWrappingWidth(400);
-        text.setTextAlignment(TextAlignment.JUSTIFY);
-        Function<Date, String> format = date -> DateFormat.getInstance().format(date);
-        List<String> sb = new ArrayList<>();
-        BiConsumer<String, String> append = (key, value) -> sb.add(bundle.getString(key) + ": " + value);
-        append.accept("duplicate.name", picture.getName());
-        append.accept("duplicate.creation_date", format.apply(picture.getCreation()));
-        append.accept("duplicate.modification_date", format.apply(picture.getModified()));
-        append.accept("duplicate.taken_time", picture.getTaken().map(format::apply).orElse("Not Found"));
-        append.accept("duplicate.model", picture.getModel());
-        append.accept("duplicate.size", picture.getSize());
-        text.setText(sb.stream().collect(Collectors.joining(MyConstant.NEW_LINE)));
-        return text;
     }
 
     private void detectFolder() {

@@ -5,9 +5,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,6 +31,7 @@ public class Picture {
     private Optional<Date> taken;
     private Date creation;
     private Date modified;
+    private static final Function<Date, String> FORMAT = date -> DateFormat.getInstance().format(date);
 
     public Picture(File file) {
         path = file.getAbsolutePath();
@@ -40,6 +48,18 @@ public class Picture {
         taken = MiscUtils.getTakenTime(file);
         creation = Date.from(attr.creationTime().toInstant());
         modified = Date.from(attr.lastModifiedTime().toInstant());
+    }
+
+    public String prettyPrint(ResourceBundle bundle) {
+        List<String> sb = new ArrayList<>();
+        BiConsumer<String, String> append = (key, value) -> sb.add(bundle.getString(key) + ": " + value);
+        append.accept("duplicate.name", name);
+        append.accept("duplicate.creation_date", FORMAT.apply(creation));
+        append.accept("duplicate.modification_date", FORMAT.apply(modified));
+        append.accept("duplicate.taken_time", taken.map(FORMAT::apply).orElse("Not Found"));
+        append.accept("duplicate.model", model);
+        append.accept("duplicate.size", size);
+        return sb.stream().collect(Collectors.joining(MyConstant.NEW_LINE));
     }
 
     public Path toPath() {
