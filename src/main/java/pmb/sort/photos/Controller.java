@@ -56,12 +56,10 @@ public class Controller
     private TextField dateFormat;
     @FXML
     private TextField yearFormat;
+    private TextField pictureExtension;
     @FXML
     private TextField monthFormat;
-    @FXML
-    private TextField pictureExtention;
-    @FXML
-    private TextField videoExtention;
+    private TextField videoExtension;
     @FXML
     private Text messageProperties;
     @FXML
@@ -79,7 +77,7 @@ public class Controller
         LOG.debug("Start initialize");
         this.bundle = resources;
         properties = Map.of(dateFormat, Property.DATE_FORMAT, yearFormat, Property.YEAR_FOLDER_FORMAT, monthFormat, Property.MONTH_FOLDER_FORMAT,
-                pictureExtention, Property.PICTURE_EXTENTION, videoExtention, Property.VIDEO_EXTENTION);
+                pictureExtension, Property.PICTURE_EXTENSION, videoExtension, Property.VIDEO_EXTENSION);
         properties.forEach((field, prop) -> field.setText(MiscUtils.getDefaultValue(prop)));
         selectedDir = MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).map(File::new).filter(File::exists)
                 .orElseGet(() -> new File(MyConstant.USER_DIRECTORY));
@@ -121,10 +119,10 @@ public class Controller
         List<TextField> blanks = fields.get().filter(MiscUtils.isBlank).collect(Collectors.toList());
         List<TextField> invalidDates = List.of(dateFormat, yearFormat, monthFormat).stream()
                 .filter(MiscUtils.validDateFormat.negate().or(MiscUtils.invalidCharacters)).collect(Collectors.toList());
-        List<TextField> invalidExtentions = List.of(pictureExtention, videoExtention).stream()
-                .filter(MiscUtils.validExtention.negate().or(MiscUtils.invalidCharacters)).collect(Collectors.toList());
+        List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
+                .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
         fields.get().forEach(f -> f.getStyleClass().remove(CSS_CLASS_ERROR));
-        Stream.of(blanks, invalidDates, invalidExtentions).flatMap(List::stream).collect(Collectors.toSet())
+        Stream.of(blanks, invalidDates, invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
                 .forEach(f -> f.getStyleClass().add(CSS_CLASS_ERROR));
 
         List<String> messages = new ArrayList<>();
@@ -134,8 +132,8 @@ public class Controller
         if (!invalidDates.isEmpty()) {
             messages.add(bundle.getString("warning.date.format"));
         }
-        if (!invalidExtentions.isEmpty()) {
-            messages.add(bundle.getString("warning.extention"));
+        if (!invalidExtensions.isEmpty()) {
+            messages.add(bundle.getString("warning.extension"));
         }
 
         if (!messages.isEmpty()) {
@@ -158,9 +156,9 @@ public class Controller
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
         SimpleDateFormat yearSdf = new SimpleDateFormat(yearFormat.getText());
         SimpleDateFormat monthSdf = new SimpleDateFormat(monthFormat.getText());
-        List<String> extentions = Arrays
-                .asList(ArrayUtils.addAll(StringUtils.split(pictureExtention.getText(), ","), StringUtils.split(videoExtention.getText(), ",")));
-        MyFileUtils.listFilesInFolder(selectedDir, extentions, false).stream().map(Picture::new).forEach(picture -> {
+        List<String> extensions = Arrays
+                .asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), ","), StringUtils.split(videoExtension.getText(), ",")));
+        MyFileUtils.listFilesInFolder(selectedDir, extensions, false).stream().map(Picture::new).forEach(picture -> {
             Date date = picture.getTaken().orElse(picture.getCreation());
             String newName = sdf.format(date);
             try {
@@ -173,7 +171,7 @@ public class Controller
     }
 
     private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder) throws IOException {
-        String newFilename = newName + MyConstant.DOT + picture.getExtention();
+        String newFilename = newName + MyConstant.DOT + picture.getExtension();
         String newPath;
 
         if (radioRoot.isSelected()) {
@@ -197,12 +195,12 @@ public class Controller
             if (!newFile.exists()) {
                 Files.move(picture.toPath(), newFile.toPath());
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
-                duplicateDialog(picture, picture.getPath(), picture.getExtention(), newPath, new Picture(newFile));
+                duplicateDialog(picture, picture.getPath(), picture.getExtension(), newPath, new Picture(newFile));
             }
         }
     }
 
-    private void duplicateDialog(Picture picture, String absolutePath, String extention, String newPath, Picture newPicture) {
+    private void duplicateDialog(Picture picture, String absolutePath, String extension, String newPath, Picture newPicture) {
         LOG.debug("Start duplicateDialog");
         Stage dialog = new Stage();
         dialog.initOwner(container.getScene().getWindow());
@@ -243,7 +241,7 @@ public class Controller
             File renamedFile;
             do {
                 renamedFile = new File(
-                        StringUtils.substringBeforeLast(newPath, MyConstant.DOT) + SUFFIX_SEPARATOR + index + MyConstant.DOT + extention);
+                        StringUtils.substringBeforeLast(newPath, MyConstant.DOT) + SUFFIX_SEPARATOR + index + MyConstant.DOT + extension);
                 index++;
             } while (renamedFile.exists());
             try {

@@ -30,12 +30,25 @@ public final class MiscUtils {
 
     private static final Logger LOG = LogManager.getLogger(MiscUtils.class);
 
-    private static final Pattern REGEX_EXTENTION = Pattern.compile("^\\w(\\w+,)+\\w+$");
+    private static final String REGEX_EXTENSION = "^\\w+(,\\w+)*$";
+
+    /**
+     * Predicate using {@link StringUtils#isBlank(CharSequence)}
+     */
     public static final Predicate<TextField> isBlank = f -> StringUtils.isBlank(f.getText());
     public static final Predicate<TextField> invalidCharacters = f -> Arrays.stream(MyConstant.getForbiddenCharactersFilename())
             .anyMatch(s -> f.getText().contains(s));
     public static final Predicate<TextField> validDateFormat = f -> validateDateFormat(f.getText());
-    public static final Predicate<TextField> validExtention = f -> REGEX_EXTENTION.asMatchPredicate().test(f.getText());
+
+    /**
+     * Predicate to test if given input matches the given regex.
+     */
+    public static final BiPredicate<String, String> isValidRegex = (input, regex) -> Pattern.compile(regex).asMatchPredicate().test(input);
+
+    /**
+     * Predicate to test if given input is a valid list of extension file.
+     */
+    public static final Predicate<TextField> isValidExtension = f -> isValidRegex.test(f.getText(), REGEX_EXTENSION);
 
     private MiscUtils() {
         throw new AssertionError("Must not be used");

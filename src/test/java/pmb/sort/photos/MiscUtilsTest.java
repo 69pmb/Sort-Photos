@@ -36,14 +36,14 @@ class MiscUtilsTest {
 
     @Test
     void testPredicateInvalidCharacters() {
-        Assertions.assertFalse(MiscUtils.invalidCharacters.test(new TextField("correct")));
-        assertPredicates(Arrays.asList(MyConstant.getForbiddenCharactersFilename()), MiscUtils.invalidCharacters, true);
+        Assertions.assertFalse(MiscUtils.isInvalidCharacters.test(new TextField("correct")));
+        assertPredicates(Arrays.asList(MyConstant.getForbiddenCharactersFilename()), MiscUtils.isInvalidCharacters, true);
     }
 
     @Test
     void testPredicateValidExtention() {
-        assertPredicates(List.of("mp3,mp4", "mp3", "avi,mkv,wmv"), MiscUtils.validExtention, true);
-        assertPredicates(List.of("mp3,", ",", "avi,mkv!"), MiscUtils.validExtention, false);
+        assertPredicates(List.of("mp3,mp4", "mp3", "avi,mkv,wmv"), MiscUtils.isValidExtension, true);
+        assertPredicates(List.of("mp3,", ",", "avi,mkv!"), MiscUtils.isValidExtension, false);
     }
 
     private void assertPredicates(List<String> inputs, Predicate<TextField> predicate, boolean expected) {
