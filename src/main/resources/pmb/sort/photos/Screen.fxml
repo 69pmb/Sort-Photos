@@ -8,106 +8,95 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<GridPane fx:id="container" alignment="center" hgap="10"
-	prefHeight="640.0" prefWidth="1000.0" vgap="10"
-	xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="pmb.sort.photos.Controller">
-	<children>
-		<HBox spacing="10" GridPane.rowIndex="1">
-			<children>
-				<TextField fx:id="displayDir" prefHeight="31.0"
-					prefWidth="400">
-					<HBox.margin>
-						<Insets left="10.0" />
-					</HBox.margin>
-				</TextField>
-				<Button alignment="CENTER" mnemonicParsing="false"
-					onAction="#selectDirectory" text="%browse" />
-				<Button alignment="CENTER" mnemonicParsing="false"
-					onAction="#saveDefaultDir" text="%directory.chooser.save" />
-			</children>
-		</HBox>
-		<Accordion GridPane.rowIndex="2">
-			<panes>
-				<TitledPane animated="false" text="%properties.title">
-					<content>
-						<GridPane hgap="10" vgap="10">
-							<children>
-								<Label text="%properties.date.format"
-									GridPane.columnIndex="1" GridPane.rowIndex="1" />
-								<TextField fx:id="dateFormat" GridPane.columnIndex="2"
-									GridPane.rowIndex="1" />
+<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="640.0" prefWidth="1000.0" vgap="10"
+    xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pmb.sort.photos.Controller">
+    <children>
+        <HBox spacing="10" GridPane.rowIndex="1">
+            <children>
+                <TextField fx:id="displayDir" prefHeight="31.0" prefWidth="400">
+                    <HBox.margin>
+                        <Insets left="10.0" />
+                    </HBox.margin>
+                </TextField>
+                <Button alignment="CENTER" mnemonicParsing="false" onAction="#selectDirectory" text="%browse" />
+                <Button alignment="CENTER" mnemonicParsing="false" onAction="#saveDefaultDir"
+                    text="%directory.chooser.save" />
+            </children>
+        </HBox>
+        <Accordion GridPane.rowIndex="2">
+            <panes>
+                <TitledPane animated="false" text="%properties.title">
+                    <content>
+                        <GridPane hgap="10" vgap="10">
+                            <children>
+                                <Label text="%properties.date.format" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="1" />
+                                <TextField fx:id="dateFormat" GridPane.columnIndex="2" GridPane.rowIndex="1" />
 
 								<Label text="%properties.year.folder.format"
 									GridPane.columnIndex="1" GridPane.rowIndex="2" />
 								<TextField fx:id="yearFormat" GridPane.columnIndex="2"
 									GridPane.rowIndex="2" />
+                                <Label text="%properties.picture.extension" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="2" />
+                                <TextField fx:id="pictureExtension" GridPane.columnIndex="2"
+                                    GridPane.rowIndex="2" />
 
 								<Label text="%properties.month.folder.format"
 									GridPane.columnIndex="1" GridPane.rowIndex="3" />
 								<TextField fx:id="monthFormat"
 									GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                                <Label text="%properties.video.extension" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="3" />
+                                <TextField fx:id="videoExtension" GridPane.columnIndex="2"
+                                    GridPane.rowIndex="3" />
 
-								<Label text="%properties.picture.extention"
-									GridPane.columnIndex="1" GridPane.rowIndex="4" />
-								<TextField fx:id="pictureExtention"
-									GridPane.columnIndex="2" GridPane.rowIndex="4" />
-
-								<Label text="%properties.video.extention"
-									GridPane.columnIndex="1" GridPane.rowIndex="5" />
-								<TextField fx:id="videoExtention"
-									GridPane.columnIndex="2" GridPane.rowIndex="5" />
-
-								<Button onAction="#saveProperties" text="%save"
-									GridPane.columnIndex="1" GridPane.rowIndex="6" />
-								<Text fx:id="messageProperties" wrappingWidth="400.0"
-									GridPane.columnIndex="2" GridPane.rowIndex="6" />
-							</children>
-							<columnConstraints>
-								<ColumnConstraints />
-								<ColumnConstraints maxWidth="262.0"
-									minWidth="222.0" prefWidth="245.0" />
-								<ColumnConstraints maxWidth="500.0"
-									minWidth="142.0" prefWidth="480.0" />
-							</columnConstraints>
-							<rowConstraints>
-								<RowConstraints />
-								<RowConstraints />
-								<RowConstraints />
-								<RowConstraints />
-								<RowConstraints />
-								<RowConstraints />
-								<RowConstraints />
-							</rowConstraints>
-						</GridPane>
-					</content>
-				</TitledPane>
-			</panes>
-		</Accordion>
-		<HBox spacing="10" GridPane.rowIndex="3">
-			<children>
-				<Text fx:id="messages" />
-				<Button text="%start" onAction="#process"/>
-				<RadioButton fx:id="radioYear" text="%radio.year">
-					<toggleGroup>
-						<ToggleGroup fx:id="radio" />
-					</toggleGroup>
-				</RadioButton>
-				<RadioButton fx:id="radioMonth" text="%radio.month"
-					toggleGroup="$radio" />
-				<RadioButton fx:id="radioRoot" text="%radio.root"
-					toggleGroup="$radio" />
-			</children>
-		</HBox>
-	</children>
-	<columnConstraints>
-		<ColumnConstraints />
-		<ColumnConstraints />
-	</columnConstraints>
-	<rowConstraints>
-		<RowConstraints />
-		<RowConstraints />
-		<RowConstraints />
-		<RowConstraints />
-	</rowConstraints>
+                                <Button onAction="#saveProperties" text="%save" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="4" />
+                                <Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
+                                    GridPane.rowIndex="4" />
+                            </children>
+                            <columnConstraints>
+                                <ColumnConstraints />
+                                <ColumnConstraints maxWidth="262.0" minWidth="222.0" prefWidth="245.0" />
+                                <ColumnConstraints maxWidth="500.0" minWidth="142.0" prefWidth="480.0" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints />
+                                <RowConstraints />
+                                <RowConstraints />
+                                <RowConstraints />
+                                <RowConstraints />
+                                <RowConstraints />
+                                <RowConstraints />
+                            </rowConstraints>
+                        </GridPane>
+                    </content>
+                </TitledPane>
+            </panes>
+        </Accordion>
+        <HBox spacing="10" GridPane.rowIndex="3">
+            <children>
+                <Text fx:id="messages" />
+                <Button text="%start" onAction="#process" />
+                <RadioButton fx:id="radioYear" text="%radio.year">
+                    <toggleGroup>
+                        <ToggleGroup fx:id="radio" />
+                    </toggleGroup>
+                </RadioButton>
+                <RadioButton fx:id="radioMonth" text="%radio.month" toggleGroup="$radio" />
+                <RadioButton fx:id="radioRoot" text="%radio.root" toggleGroup="$radio" />
+            </children>
+        </HBox>
+    </children>
+    <columnConstraints>
+        <ColumnConstraints />
+        <ColumnConstraints />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+    </rowConstraints>
 </GridPane>

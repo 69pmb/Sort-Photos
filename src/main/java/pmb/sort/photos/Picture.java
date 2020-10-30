@@ -18,7 +18,7 @@ public class Picture {
 
     private String path;
     private String name;
-    private String extention;
+    private String extension;
     private String size;
     private String model;
     private Optional<Date> taken;
@@ -28,7 +28,7 @@ public class Picture {
     public Picture(File file) {
         path = file.getAbsolutePath();
         name = file.getName();
-        extention = StringUtils.lowerCase(StringUtils.substringAfterLast(path, MyConstant.DOT));
+        extension = StringUtils.lowerCase(StringUtils.substringAfterLast(path, MyConstant.DOT));
         BasicFileAttributes attr;
         try {
             attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
@@ -62,12 +62,12 @@ public class Picture {
         this.name = name;
     }
 
-    public String getExtention() {
-        return extention;
+    public String getExtension() {
+        return extension;
     }
 
-    public void setExtention(String extention) {
-        this.extention = extention;
+    public void setExtension(String extension) {
+        this.extension = extension;
     }
 
     public String getSize() {
@@ -112,7 +112,7 @@ public class Picture {
 
     @Override
     public int hashCode() {
-        return Objects.hash(extention, model, size, taken);
+        return Objects.hash(extension, model, size, taken);
     }
 
     @Override
@@ -124,7 +124,7 @@ public class Picture {
             return false;
         }
         Picture other = (Picture) obj;
-        return Objects.equals(extention, other.extention) && Objects.equals(model, other.model) && Objects.equals(size, other.size)
+        return Objects.equals(extension, other.extension) && Objects.equals(model, other.model) && Objects.equals(size, other.size)
                 && Objects.equals(taken, other.taken);
     }
 
