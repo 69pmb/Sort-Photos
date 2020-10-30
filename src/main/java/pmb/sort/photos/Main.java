@@ -24,7 +24,7 @@ public class Main
         Locale locale = Locale.getDefault();
         ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
         Parent root = FXMLLoader.load(getClass().getResource("Screen.fxml"), bundle);
-        Scene scene = new Scene(root, 700, 600);
+        Scene scene = new Scene(root, 700, 300);
         scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
