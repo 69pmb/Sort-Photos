@@ -28,6 +28,7 @@ public class Main
         scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
+        stage.setResizable(false);
         LOG.debug("End start");
     }
 

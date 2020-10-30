@@ -84,8 +84,7 @@ public class Controller
     public void initialize(URL location, ResourceBundle resources) {
         LOG.debug("Start initialize");
         this.bundle = resources;
-        properties = Map.of(dateFormat, Property.DATE_FORMAT, pictureExtension, Property.PICTURE_EXTENSION, videoExtension, Property.VIDEO_EXTENSION);
-        properties.forEach((field, prop) -> field.setText(MiscUtils.getDefaultValue(prop)));
+        resetProperties();
         selectedDir.setText(
                 MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists()).orElse(MyConstant.USER_DIRECTORY));
         selectedDir.setOnKeyReleased(e -> ifValidSelectedDirectory(() -> {}));
@@ -140,6 +139,17 @@ public class Controller
             MyProperties.save();
         });
         LOG.debug("End saveDefaultDir");
+    }
+
+    @FXML
+    public void resetProperties() {
+        LOG.debug("Start resetProperties");
+        properties = Map.of(dateFormat, Property.DATE_FORMAT, pictureExtension, Property.PICTURE_EXTENSION, videoExtension, Property.VIDEO_EXTENSION);
+        properties.forEach((field, prop) -> {
+            field.setText(MiscUtils.getDefaultValue(prop));
+            field.getStyleClass().removeAll(CSS_CLASS_ERROR);
+        });
+        LOG.debug("End resetProperties");
     }
 
     @FXML
