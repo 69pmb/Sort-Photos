@@ -43,18 +43,21 @@
                                 <TextField fx:id="videoExtension" GridPane.columnIndex="2"
                                     GridPane.rowIndex="3" />
 
-                                <Button onAction="#saveProperties" text="%save" GridPane.columnIndex="1"
-                                    GridPane.rowIndex="4" />
+                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                    <children>
+                                        <Button onAction="#resetProperties" text="%reset" />
+                                        <Button onAction="#saveProperties" text="%save" />
+                                    </children>
+                                </HBox>
                                 <Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
                                     GridPane.rowIndex="4" />
                             </children>
                             <columnConstraints>
                                 <ColumnConstraints />
-                                <ColumnConstraints maxWidth="262.0" minWidth="222.0" prefWidth="245.0" />
+                                <ColumnConstraints maxWidth="400" minWidth="150" prefWidth="200" />
                                 <ColumnConstraints maxWidth="500.0" minWidth="142.0" prefWidth="480.0" />
                             </columnConstraints>
                             <rowConstraints>
-                                <RowConstraints />
                                 <RowConstraints />
                                 <RowConstraints />
                                 <RowConstraints />
