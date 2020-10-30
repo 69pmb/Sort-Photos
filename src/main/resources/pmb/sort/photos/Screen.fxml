@@ -33,19 +33,11 @@
                                     GridPane.rowIndex="1" />
                                 <TextField fx:id="dateFormat" GridPane.columnIndex="2" GridPane.rowIndex="1" />
 
-								<Label text="%properties.year.folder.format"
-									GridPane.columnIndex="1" GridPane.rowIndex="2" />
-								<TextField fx:id="yearFormat" GridPane.columnIndex="2"
-									GridPane.rowIndex="2" />
                                 <Label text="%properties.picture.extension" GridPane.columnIndex="1"
                                     GridPane.rowIndex="2" />
                                 <TextField fx:id="pictureExtension" GridPane.columnIndex="2"
                                     GridPane.rowIndex="2" />
 
-								<Label text="%properties.month.folder.format"
-									GridPane.columnIndex="1" GridPane.rowIndex="3" />
-								<TextField fx:id="monthFormat"
-									GridPane.columnIndex="2" GridPane.rowIndex="3" />
                                 <Label text="%properties.video.extension" GridPane.columnIndex="1"
                                     GridPane.rowIndex="3" />
                                 <TextField fx:id="videoExtension" GridPane.columnIndex="2"
@@ -62,8 +54,6 @@
                                 <ColumnConstraints maxWidth="500.0" minWidth="142.0" prefWidth="480.0" />
                             </columnConstraints>
                             <rowConstraints>
-                                <RowConstraints />
-                                <RowConstraints />
                                 <RowConstraints />
                                 <RowConstraints />
                                 <RowConstraints />

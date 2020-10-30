@@ -61,16 +61,6 @@ class MiscUtilsTest {
     }
 
     @Test
-    void validateDate() {
-        Assertions.assertTrue(MiscUtils.validateDate("dd/MM/yyyy", "12/05/2020"));
-        Assertions.assertTrue(MiscUtils.validateDate("MM.yyyy", "06.2020"));
-        Assertions.assertTrue(MiscUtils.validateDate("yyyy", "2020"));
-        Assertions.assertFalse(MiscUtils.validateDate("yyyy", "06.2020"));
-        Assertions.assertFalse(MiscUtils.validateDate("MM.yyyy", "02.06.2020"));
-        Assertions.assertFalse(MiscUtils.validateDate("MM.yyyy", "2020"));
-    }
-
-    @Test
     void getTakenTimeOk() {
         Optional<Date> takenTime = MiscUtils.getTakenTime(new File(TEST_RESOURCE_DIR + "test1.jpg"));
         Assertions.assertTrue(takenTime.isPresent());

@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -48,6 +49,10 @@ public class Controller
     private static final String SUFFIX_SEPARATOR = "-";
     private static final String CSS_CLASS_ERROR = "error";
     private static final String CSS_CLASS_BOX = "box";
+    private static final String YEAR_FORMAT = "yyyy";
+    private static final String MONTH_FORMAT = "MM.yyyy";
+    private static final String MONTH_REGEX = "^((0\\d)|(1[0-2]))\\.(19|20)\\d{2}$";
+    private static final String YEAR_REGEX = "^(19|20)\\d{2}$";
     @FXML
     private GridPane container;
     @FXML
@@ -55,10 +60,8 @@ public class Controller
     @FXML
     private TextField dateFormat;
     @FXML
-    private TextField yearFormat;
     private TextField pictureExtension;
     @FXML
-    private TextField monthFormat;
     private TextField videoExtension;
     @FXML
     private Text messageProperties;
@@ -76,8 +79,7 @@ public class Controller
     public void initialize(URL location, ResourceBundle resources) {
         LOG.debug("Start initialize");
         this.bundle = resources;
-        properties = Map.of(dateFormat, Property.DATE_FORMAT, yearFormat, Property.YEAR_FOLDER_FORMAT, monthFormat, Property.MONTH_FOLDER_FORMAT,
-                pictureExtension, Property.PICTURE_EXTENSION, videoExtension, Property.VIDEO_EXTENSION);
+        properties = Map.of(dateFormat, Property.DATE_FORMAT, pictureExtension, Property.PICTURE_EXTENSION, videoExtension, Property.VIDEO_EXTENSION);
         properties.forEach((field, prop) -> field.setText(MiscUtils.getDefaultValue(prop)));
         selectedDir = MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).map(File::new).filter(File::exists)
                 .orElseGet(() -> new File(MyConstant.USER_DIRECTORY));
@@ -117,19 +119,18 @@ public class Controller
         LOG.debug("Start saveProperties");
         Supplier<Stream<TextField>> fields = () -> properties.keySet().stream().filter(k -> !displayDir.equals(k));
         List<TextField> blanks = fields.get().filter(MiscUtils.isBlank).collect(Collectors.toList());
-        List<TextField> invalidDates = List.of(dateFormat, yearFormat, monthFormat).stream()
-                .filter(MiscUtils.validDateFormat.negate().or(MiscUtils.invalidCharacters)).collect(Collectors.toList());
+        Optional<TextField> invalidDate = Optional.of(dateFormat).filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
         List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
                 .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
-        fields.get().forEach(f -> f.getStyleClass().remove(CSS_CLASS_ERROR));
-        Stream.of(blanks, invalidDates, invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
+        fields.get().forEach(f -> f.getStyleClass().removeAll(CSS_CLASS_ERROR));
+        Stream.of(blanks, invalidDate.map(List::of).orElse(new ArrayList<>()), invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
                 .forEach(f -> f.getStyleClass().add(CSS_CLASS_ERROR));
 
         List<String> messages = new ArrayList<>();
         if (!blanks.isEmpty()) {
             messages.add(bundle.getString("warning.empty"));
         }
-        if (!invalidDates.isEmpty()) {
+        if (invalidDate.isPresent()) {
             messages.add(bundle.getString("warning.date.format"));
         }
         if (!invalidExtensions.isEmpty()) {
@@ -154,15 +155,13 @@ public class Controller
     public void process() {
         LOG.debug("Start process");
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
-        SimpleDateFormat yearSdf = new SimpleDateFormat(yearFormat.getText());
-        SimpleDateFormat monthSdf = new SimpleDateFormat(monthFormat.getText());
         List<String> extensions = Arrays
                 .asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), ","), StringUtils.split(videoExtension.getText(), ",")));
         MyFileUtils.listFilesInFolder(selectedDir, extensions, false).stream().map(Picture::new).forEach(picture -> {
             Date date = picture.getTaken().orElse(picture.getCreation());
             String newName = sdf.format(date);
             try {
-                renameFile(picture, newName, yearSdf.format(date), monthSdf.format(date));
+                renameFile(picture, newName, new SimpleDateFormat(YEAR_FORMAT).format(date), new SimpleDateFormat(MONTH_FORMAT).format(date));
             } catch (IOException e) {
                 throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
             }
@@ -175,13 +174,13 @@ public class Controller
         String newPath;
 
         if (radioRoot.isSelected()) {
-            String yearPath = selectedDir.getAbsolutePath() + MyConstant.FS + yearFolder;
+            String yearPath = selectedDir.getText() + MyConstant.FS + yearFolder;
             String monthPath = yearPath + MyConstant.FS + monthFolder;
             MyFileUtils.createFolderIfNotExists(yearPath);
             MyFileUtils.createFolderIfNotExists(monthPath);
             newPath = monthPath + MyConstant.FS + newFilename;
         } else if (radioYear.isSelected()) {
-            String monthPath = selectedDir.getAbsolutePath() + MyConstant.FS + monthFolder;
+            String monthPath = selectedDir.getText() + MyConstant.FS + monthFolder;
             MyFileUtils.createFolderIfNotExists(monthPath);
             newPath = monthPath + MyConstant.FS + newFilename;
         } else {
@@ -281,9 +280,9 @@ public class Controller
 
     private void detectFolder() {
         LOG.debug("Start detectFolder");
-        if (MiscUtils.validateDate(yearFormat.getText(), selectedDir.getName())) {
+        if (MiscUtils.isValidRegex.test(selectedDir.getName(), YEAR_REGEX)) {
             radioYear.setSelected(true);
-        } else if (MiscUtils.validateDate(monthFormat.getText(), selectedDir.getName())) {
+        } else if (MiscUtils.isValidRegex.test(selectedDir.getName(), MONTH_REGEX)) {
             radioMonth.setSelected(true);
         } else {
             radioRoot.setSelected(true);

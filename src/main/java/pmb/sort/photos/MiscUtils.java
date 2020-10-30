@@ -2,12 +2,12 @@ package pmb.sort.photos;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 import java.util.TimeZone;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -36,9 +36,17 @@ public final class MiscUtils {
      * Predicate using {@link StringUtils#isBlank(CharSequence)}
      */
     public static final Predicate<TextField> isBlank = f -> StringUtils.isBlank(f.getText());
-    public static final Predicate<TextField> invalidCharacters = f -> Arrays.stream(MyConstant.getForbiddenCharactersFilename())
+
+    /**
+     * Predicate to test if input contains invalid Windows filesystem's characters.
+     */
+    public static final Predicate<TextField> isInvalidCharacters = f -> Arrays.stream(MyConstant.getForbiddenCharactersFilename())
             .anyMatch(s -> f.getText().contains(s));
-    public static final Predicate<TextField> validDateFormat = f -> validateDateFormat(f.getText());
+
+    /**
+     * Predicate to test if the given date format is valid.
+     */
+    public static final Predicate<TextField> isValidDateFormat = f -> validateDateFormat(f.getText());
 
     /**
      * Predicate to test if given input matches the given regex.
@@ -54,22 +62,19 @@ public final class MiscUtils {
         throw new AssertionError("Must not be used");
     }
 
+    /**
+     * Checks if the given date format is valid.
+     *
+     * @param format
+     *            the date format to validate
+     * @return if true the format is valid, false otherwise
+     * @see SimpleDateFormat
+     */
     public static boolean validateDateFormat(String format) {
         try {
             new SimpleDateFormat(format);
             return true;
         } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
-
-    public static boolean validateDate(String format, String input) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat(format);
-            sdf.setLenient(false);
-            sdf.parse(input);
-            return true;
-        } catch (ParseException e) {
             return false;
         }
     }
