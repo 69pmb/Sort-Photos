@@ -16,6 +16,7 @@ import com.sun.javafx.application.PlatformImpl;
 
 import javafx.scene.control.TextField;
 import pmb.my.starter.utils.MyConstant;
+import pmb.sort.photos.utils.MiscUtils;
 
 class MiscUtilsTest {
 

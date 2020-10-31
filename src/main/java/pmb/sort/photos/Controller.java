@@ -39,6 +39,10 @@ import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyFileUtils;
 import pmb.my.starter.utils.MyProperties;
+import pmb.sort.photos.model.Picture;
+import pmb.sort.photos.model.Property;
+import pmb.sort.photos.utils.JavaFxUtils;
+import pmb.sort.photos.utils.MiscUtils;
 
 public class Controller
         implements Initializable {
