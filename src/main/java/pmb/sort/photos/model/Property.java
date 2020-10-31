@@ -1,4 +1,4 @@
-package pmb.sort.photos;
+package pmb.sort.photos.model;
 
 import java.util.Arrays;
 

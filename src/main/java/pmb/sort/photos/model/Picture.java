@@ -1,4 +1,4 @@
-package pmb.sort.photos;
+package pmb.sort.photos.model;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
+import pmb.sort.photos.utils.MiscUtils;
 
 public class Picture {
 

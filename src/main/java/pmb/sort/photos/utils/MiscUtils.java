@@ -1,4 +1,4 @@
-package pmb.sort.photos;
+package pmb.sort.photos.utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +25,7 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 import javafx.scene.control.TextField;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyProperties;
+import pmb.sort.photos.model.Property;
 
 public final class MiscUtils {
 

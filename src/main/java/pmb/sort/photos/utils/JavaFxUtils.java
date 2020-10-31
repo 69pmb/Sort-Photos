@@ -1,4 +1,4 @@
-package pmb.sort.photos;
+package pmb.sort.photos.utils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
