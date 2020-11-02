@@ -22,6 +22,9 @@ import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.sort.photos.utils.MiscUtils;
 
+/**
+ * Class representing a Picture or Video file.
+ */
 public class Picture {
 
     private String path;
@@ -34,6 +37,13 @@ public class Picture {
     private Date modified;
     private static final Function<Date, String> FORMAT = date -> DateFormat.getInstance().format(date);
 
+    /**
+     * Constructor reading file attributes with {@link BasicFileAttributes} and metadata-extractor.
+     *
+     * @param file
+     *            to convert
+     * @see Files#readAttributes(Path, Class, java.nio.file.LinkOption...)
+     */
     public Picture(File file) {
         path = file.getAbsolutePath();
         name = file.getName();
@@ -51,6 +61,13 @@ public class Picture {
         modified = Date.from(attr.lastModifiedTime().toInstant());
     }
 
+    /**
+     * Resumes picture informations.
+     *
+     * @param bundle
+     *            translations
+     * @return a string with {@link MyConstant#NEW_LINE} separator
+     */
     public String prettyPrint(ResourceBundle bundle) {
         List<String> sb = new ArrayList<>();
         BiConsumer<String, String> append = (key, value) -> sb.add(bundle.getString(key) + ": " + value);
