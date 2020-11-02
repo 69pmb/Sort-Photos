@@ -12,6 +12,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import pmb.sort.photos.utils.Constant;
 
 public class Main
         extends Application {
@@ -25,7 +26,7 @@ public class Main
         ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
         Parent root = FXMLLoader.load(getClass().getResource("Screen.fxml"), bundle);
         Scene scene = new Scene(root, 700, 300);
-        scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
+        scene.getStylesheets().add(Main.class.getResource(Constant.CSS_FILE).toExternalForm());
         stage.setScene(scene);
         stage.show();
         stage.setResizable(false);
