@@ -52,29 +52,29 @@ public class Controller
     private static final Logger LOG = LogManager.getLogger(Controller.class);
 
     @FXML
-    private GridPane container;
+    protected GridPane container;
     @FXML
-    private TextField selectedDir;
+    protected TextField selectedDir;
     @FXML
-    private TextField dateFormat;
+    protected TextField dateFormat;
     @FXML
-    private TextField pictureExtension;
+    protected TextField pictureExtension;
     @FXML
-    private TextField videoExtension;
+    protected TextField videoExtension;
     @FXML
-    private Text messageProperties;
+    protected Text messageProperties;
     @FXML
-    private RadioButton radioYear;
+    protected RadioButton radioYear;
     @FXML
-    private RadioButton radioMonth;
+    protected RadioButton radioMonth;
     @FXML
-    private RadioButton radioRoot;
+    protected RadioButton radioRoot;
     @FXML
-    private Button saveDirBtn;
+    protected Button saveDirBtn;
     @FXML
-    private Button goBtn;
+    protected Button goBtn;
     @FXML
-    private Text messages;
+    protected Text messages;
     private ResourceBundle bundle;
     private Map<TextField, Property> properties;
 
@@ -114,10 +114,7 @@ public class Controller
     public void selectDirectory() {
         LOG.debug("Start selectDirectory");
         messages.setText("");
-        FileChooser dirChooser = new FileChooser();
-        dirChooser.setTitle(bundle.getString("directory.chooser.title"));
-        dirChooser.setInitialDirectory(new File(selectedDir.getText()));
-        File dir = dirChooser.showOpenDialog(container.getScene().getWindow());
+        File dir = chooseDirectory();
         if (dir != null) {
             LOG.debug("A directory was selected");
             if (dir.isFile()) {
@@ -134,6 +131,13 @@ public class Controller
         LOG.debug("End selectDirectory");
     }
 
+    public File chooseDirectory() {
+        FileChooser dirChooser = new FileChooser();
+        dirChooser.setTitle(bundle.getString("directory.chooser.title"));
+        dirChooser.setInitialDirectory(new File(selectedDir.getText()));
+        return dirChooser.showOpenDialog(container.getScene().getWindow());
+    }
+
     @FXML
     public void saveDefaultDir() {
         LOG.debug("Start saveDefaultDir");
@@ -147,7 +151,8 @@ public class Controller
     @FXML
     public void resetProperties() {
         LOG.debug("Start resetProperties");
-        properties = Map.of(dateFormat, Property.DATE_FORMAT, pictureExtension, Property.PICTURE_EXTENSION, videoExtension, Property.VIDEO_EXTENSION);
+        properties = Map.of(dateFormat, Property.DATE_FORMAT, pictureExtension, Property.PICTURE_EXTENSION,
+                videoExtension, Property.VIDEO_EXTENSION);
         properties.forEach((field, prop) -> {
             field.setText(MiscUtils.getDefaultValue(prop));
             field.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
@@ -158,14 +163,36 @@ public class Controller
     @FXML
     public void saveProperties() {
         LOG.debug("Start saveProperties");
-        Supplier<Stream<TextField>> fields = () -> properties.keySet().stream().filter(Predicate.not(selectedDir::equals));
+        List<String> warnings = validation();
+
+        if (!warnings.isEmpty()) {
+            LOG.debug("Incorrect inputs");
+            goBtn.setDisable(true);
+            messageProperties.setText(bundle.getString("warning") + StringUtils.join(warnings, ","));
+        } else {
+            LOG.debug("Save properties");
+            goBtn.setDisable(false);
+            messageProperties.setText(bundle.getString("properties.saved"));
+            properties.entrySet().stream().filter(e -> e.getValue() != Property.DEFAULT_WORKING_DIR)
+            .forEach(e -> MyProperties.set(e.getValue().getValue(), e.getKey().getText()));
+            MyProperties.save();
+            detectFolder();
+        }
+        LOG.debug("End saveProperties");
+    }
+
+    private List<String> validation() {
+        Supplier<Stream<TextField>> fields = () -> properties.keySet().stream()
+                .filter(Predicate.not(selectedDir::equals));
         List<TextField> blanks = fields.get().filter(MiscUtils.isBlank).collect(Collectors.toList());
-        Optional<TextField> invalidDate = Optional.of(dateFormat).filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
+        Optional<TextField> invalidDate = Optional.of(dateFormat)
+                .filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
         List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
-                .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
+                .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters))
+                .collect(Collectors.toList());
         fields.get().forEach(f -> f.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR));
-        Stream.of(blanks, invalidDate.map(List::of).orElse(new ArrayList<>()), invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
-                .forEach(f -> f.getStyleClass().add(Constant.CSS_CLASS_ERROR));
+        Stream.of(blanks, invalidDate.map(List::of).orElse(new ArrayList<>()), invalidExtensions).flatMap(List::stream)
+        .collect(Collectors.toSet()).forEach(f -> f.getStyleClass().add(Constant.CSS_CLASS_ERROR));
 
         List<String> warnings = new ArrayList<>();
         if (!blanks.isEmpty()) {
@@ -177,29 +204,16 @@ public class Controller
         if (!invalidExtensions.isEmpty()) {
             warnings.add(bundle.getString("warning.extension"));
         }
-
-        if (!warnings.isEmpty()) {
-            LOG.debug("Incorrect inputs");
-            goBtn.setDisable(true);
-            messageProperties.setText(bundle.getString("warning") + StringUtils.join(warnings, ","));
-        } else {
-            LOG.debug("Save properties");
-            goBtn.setDisable(false);
-            messageProperties.setText(bundle.getString("properties.saved"));
-            properties.entrySet().stream().filter(e -> e.getValue() != Property.DEFAULT_WORKING_DIR)
-                    .forEach(e -> MyProperties.set(e.getValue().getValue(), e.getKey().getText()));
-            MyProperties.save();
-            detectFolder();
-        }
-        LOG.debug("End saveProperties");
+        return warnings;
     }
 
     @FXML
     public void process() {
         LOG.debug("Start process");
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
-        List<String> extensions = Arrays.asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
-                StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
+        List<String> extensions = Arrays
+                .asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
+                        StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
         List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
         int size = files.size();
         IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
@@ -217,7 +231,8 @@ public class Controller
         LOG.debug("End process");
     }
 
-    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder, String count) throws IOException {
+    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder, String count)
+            throws IOException {
         String newFilename = newName + MyConstant.DOT + picture.getExtension();
         String newPath;
 
@@ -236,8 +251,9 @@ public class Controller
         }
 
         File newFile = new File(newPath);
-        if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
-                StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
+        if (!StringUtils.equals(newPath, picture.getPath())
+                && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
+                        StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
             LOG.info("New path {}", newPath);
             if (!newFile.exists()) {
                 Files.move(picture.toPath(), newFile.toPath());
@@ -262,7 +278,8 @@ public class Controller
 
         // Buttons
         HBox hBox = new HBox();
-        hBox.getChildren().add(new Text(bundle.getString(picture.equals(newPicture) ? "duplicate.warning.equals" : "duplicate.warning")));
+        hBox.getChildren().add(new Text(
+                bundle.getString(picture.equals(newPicture) ? "duplicate.warning.equals" : "duplicate.warning")));
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.cancel"), e -> {
             LOG.debug("Do nothing");
             dialog.close();
