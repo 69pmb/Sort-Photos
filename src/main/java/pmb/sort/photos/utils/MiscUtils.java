@@ -31,8 +31,6 @@ public final class MiscUtils {
 
     private static final Logger LOG = LogManager.getLogger(MiscUtils.class);
 
-    private static final String REGEX_EXTENSION = "^\\w+(,\\w+)*$";
-
     /**
      * Predicate using {@link StringUtils#isBlank(CharSequence)}
      */
@@ -57,7 +55,7 @@ public final class MiscUtils {
     /**
      * Predicate to test if given input is a valid list of extension file.
      */
-    public static final Predicate<TextField> isValidExtension = f -> isValidRegex.test(f.getText(), REGEX_EXTENSION);
+    public static final Predicate<TextField> isValidExtension = f -> isValidRegex.test(f.getText(), Constant.REGEX_EXTENSION);
 
     private MiscUtils() {
         throw new AssertionError("Must not be used");

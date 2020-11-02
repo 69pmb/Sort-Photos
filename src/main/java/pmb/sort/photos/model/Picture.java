@@ -28,7 +28,7 @@ public class Picture {
     private String name;
     private String extension;
     private String size;
-    private String model;
+    private Optional<String> model;
     private Optional<Date> taken;
     private Date creation;
     private Date modified;
@@ -45,7 +45,7 @@ public class Picture {
             throw new MinorException("Error when reading attributes of file: " + path, e);
         }
         size = (attr.size() / 1024) + " KB";
-        model = MiscUtils.getModel(file).orElse("Unknown");
+        model = MiscUtils.getModel(file);
         taken = MiscUtils.getTakenTime(file);
         creation = Date.from(attr.creationTime().toInstant());
         modified = Date.from(attr.lastModifiedTime().toInstant());
@@ -57,8 +57,8 @@ public class Picture {
         append.accept("duplicate.name", name);
         append.accept("duplicate.creation_date", FORMAT.apply(creation));
         append.accept("duplicate.modification_date", FORMAT.apply(modified));
-        append.accept("duplicate.taken_time", taken.map(FORMAT::apply).orElse("Not Found"));
-        append.accept("duplicate.model", model);
+        append.accept("duplicate.taken_time", taken.map(FORMAT::apply).orElse(bundle.getString("duplicate.taken_time.not_found")));
+        append.accept("duplicate.model", model.orElse(bundle.getString("duplicate.model.not_found")));
         append.accept("duplicate.size", size);
         return sb.stream().collect(Collectors.joining(MyConstant.NEW_LINE));
     }
@@ -123,11 +123,11 @@ public class Picture {
         this.modified = modified;
     }
 
-    public String getModel() {
+    public Optional<String> getModel() {
         return model;
     }
 
-    public void setModel(String model) {
+    public void setModel(Optional<String> model) {
         this.model = model;
     }
 

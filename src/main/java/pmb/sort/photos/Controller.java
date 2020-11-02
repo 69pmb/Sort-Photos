@@ -42,6 +42,7 @@ import pmb.my.starter.utils.MyFileUtils;
 import pmb.my.starter.utils.MyProperties;
 import pmb.sort.photos.model.Picture;
 import pmb.sort.photos.model.Property;
+import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.JavaFxUtils;
 import pmb.sort.photos.utils.MiscUtils;
 
@@ -49,13 +50,7 @@ public class Controller
         implements Initializable {
 
     private static final Logger LOG = LogManager.getLogger(Controller.class);
-    private static final String SUFFIX_SEPARATOR = "-";
-    private static final String CSS_CLASS_ERROR = "error";
-    private static final String CSS_CLASS_BOX = "box";
-    private static final String YEAR_FORMAT = "yyyy";
-    private static final String MONTH_FORMAT = "MM.yyyy";
-    private static final String MONTH_REGEX = "^((0\\d)|(1[0-2]))\\.(19|20)\\d{2}$";
-    private static final String YEAR_REGEX = "^(19|20)\\d{2}$";
+
     @FXML
     private GridPane container;
     @FXML
@@ -103,13 +98,13 @@ public class Controller
         String dir = selectedDir.getText();
         File file = new File(dir);
         if (StringUtils.isNotBlank(dir) && file.exists()) {
-            selectedDir.getStyleClass().removeAll(CSS_CLASS_ERROR);
+            selectedDir.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
             goBtn.setDisable(false);
             saveDirBtn.setDisable(false);
             detectFolder();
             action.run();
         } else {
-            selectedDir.getStyleClass().add(CSS_CLASS_ERROR);
+            selectedDir.getStyleClass().add(Constant.CSS_CLASS_ERROR);
             goBtn.setDisable(true);
             saveDirBtn.setDisable(true);
         }
@@ -155,7 +150,7 @@ public class Controller
         properties = Map.of(dateFormat, Property.DATE_FORMAT, pictureExtension, Property.PICTURE_EXTENSION, videoExtension, Property.VIDEO_EXTENSION);
         properties.forEach((field, prop) -> {
             field.setText(MiscUtils.getDefaultValue(prop));
-            field.getStyleClass().removeAll(CSS_CLASS_ERROR);
+            field.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
         });
         LOG.debug("End resetProperties");
     }
@@ -168,25 +163,25 @@ public class Controller
         Optional<TextField> invalidDate = Optional.of(dateFormat).filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
         List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
                 .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
-        fields.get().forEach(f -> f.getStyleClass().removeAll(CSS_CLASS_ERROR));
+        fields.get().forEach(f -> f.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR));
         Stream.of(blanks, invalidDate.map(List::of).orElse(new ArrayList<>()), invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
-                .forEach(f -> f.getStyleClass().add(CSS_CLASS_ERROR));
+                .forEach(f -> f.getStyleClass().add(Constant.CSS_CLASS_ERROR));
 
-        List<String> messages = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
         if (!blanks.isEmpty()) {
-            messages.add(bundle.getString("warning.empty"));
+            warnings.add(bundle.getString("warning.empty"));
         }
         if (invalidDate.isPresent()) {
-            messages.add(bundle.getString("warning.date.format"));
+            warnings.add(bundle.getString("warning.date.format"));
         }
         if (!invalidExtensions.isEmpty()) {
-            messages.add(bundle.getString("warning.extension"));
+            warnings.add(bundle.getString("warning.extension"));
         }
 
-        if (!messages.isEmpty()) {
+        if (!warnings.isEmpty()) {
             LOG.debug("Incorrect inputs");
             goBtn.setDisable(true);
-            messageProperties.setText(bundle.getString("warning") + StringUtils.join(messages, ","));
+            messageProperties.setText(bundle.getString("warning") + StringUtils.join(warnings, ","));
         } else {
             LOG.debug("Save properties");
             goBtn.setDisable(false);
@@ -203,8 +198,8 @@ public class Controller
     public void process() {
         LOG.debug("Start process");
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
-        List<String> extensions = Arrays
-                .asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), ","), StringUtils.split(videoExtension.getText(), ",")));
+        List<String> extensions = Arrays.asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
+                StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
         List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
         int size = files.size();
         IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
@@ -212,8 +207,8 @@ public class Controller
             Date date = picture.getTaken().orElse(picture.getCreation());
             String newName = sdf.format(date);
             try {
-                renameFile(picture, newName, new SimpleDateFormat(YEAR_FORMAT).format(date), new SimpleDateFormat(MONTH_FORMAT).format(date),
-                        (i + 1) + "/" + size);
+                renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
+                        new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), (i + 1) + "/" + size);
             } catch (IOException e) {
                 throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
             }
@@ -242,7 +237,7 @@ public class Controller
 
         File newFile = new File(newPath);
         if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
-                StringUtils.substringBeforeLast(picture.getPath(), SUFFIX_SEPARATOR))) {
+                StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
             LOG.info("New path {}", newPath);
             if (!newFile.exists()) {
                 Files.move(picture.toPath(), newFile.toPath());
@@ -260,65 +255,65 @@ public class Controller
         dialog.setTitle(count);
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
-        gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), CSS_CLASS_BOX, 600), 1, 1);
-        gridPane.add(JavaFxUtils.displayPicture(newPicture.getPath(), CSS_CLASS_BOX, 600), 2, 1);
+        gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), Constant.CSS_CLASS_BOX, 600), 1, 1);
+        gridPane.add(JavaFxUtils.displayPicture(newPicture.getPath(), Constant.CSS_CLASS_BOX, 600), 2, 1);
         gridPane.add(JavaFxUtils.buildText(picture.prettyPrint(bundle), 400), 1, 2);
         gridPane.add(JavaFxUtils.buildText(newPicture.prettyPrint(bundle), 400), 2, 2);
 
         // Buttons
         HBox hBox = new HBox();
-        String msg;
-        if (picture.equals(newPicture)) {
-            msg = bundle.getString("duplicate.warning.equals");
-        } else {
-            msg = bundle.getString("duplicate.warning");
-        }
-        hBox.getChildren().add(new Text(msg));
+        hBox.getChildren().add(new Text(bundle.getString(picture.equals(newPicture) ? "duplicate.warning.equals" : "duplicate.warning")));
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.cancel"), e -> {
             LOG.debug("Do nothing");
             dialog.close();
         });
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"), e -> {
-            try {
-                LOG.debug("Overwrite");
-                dialog.close();
-                Files.move(picture.toPath(), newPicture.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e1) {
-                throw new MinorException("Error when moving file " + absolutePath + " to " + newPath, e1);
-            }
-        });
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"), e -> {
-            Integer index = 1;
-            File renamedFile;
-            do {
-                renamedFile = new File(
-                        StringUtils.substringBeforeLast(newPath, MyConstant.DOT) + SUFFIX_SEPARATOR + index + MyConstant.DOT + extension);
-                index++;
-            } while (renamedFile.exists());
-            try {
-                LOG.debug("Suffix");
-                dialog.close();
-                Files.move(picture.toPath(), renamedFile.toPath());
-            } catch (IOException e1) {
-                throw new MinorException("Error when moving file " + absolutePath + " to " + newPath, e1);
-            }
-        });
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"),
+                e -> overwrite(picture, absolutePath, newPath, newPicture, dialog));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"),
+                e -> renameWithSuffix(picture, absolutePath, extension, newPath, dialog));
         hBox.setSpacing(10);
 
         gridPane.add(hBox, 1, 3);
         Scene scene = new Scene(gridPane);
-        scene.getStylesheets().add(Controller.class.getResource("application.css").toExternalForm());
+        scene.getStylesheets().add(Controller.class.getResource(Constant.CSS_FILE).toExternalForm());
         dialog.setScene(scene);
         dialog.showAndWait();
         LOG.debug("End duplicateDialog");
     }
 
+    private void overwrite(Picture picture, String absolutePath, String newPath, Picture newPicture, Stage dialog) {
+        LOG.debug("Overwrite");
+        try {
+            dialog.close();
+            Files.move(picture.toPath(), newPicture.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e1) {
+            throw new MinorException("Error when moving file " + absolutePath + " to " + newPath, e1);
+        }
+    }
+
+    private void renameWithSuffix(Picture picture, String absolutePath, String extension, String newPath, Stage dialog) {
+        LOG.debug("Suffix");
+        Integer index = 1;
+        File renamedFile;
+        do {
+            renamedFile = new File(
+                    StringUtils.substringBeforeLast(newPath, MyConstant.DOT) + Constant.SUFFIX_SEPARATOR + index + MyConstant.DOT + extension);
+            index++;
+        } while (renamedFile.exists());
+        try {
+            dialog.close();
+            Files.move(picture.toPath(), renamedFile.toPath());
+        } catch (IOException e1) {
+            throw new MinorException("Error when moving file " + absolutePath + " to " + newPath, e1);
+        }
+    }
+
     private void detectFolder() {
         LOG.debug("Start detectFolder");
         File folder = new File(selectedDir.getText());
-        if (MiscUtils.isValidRegex.test(folder.getName(), YEAR_REGEX)) {
+        if (MiscUtils.isValidRegex.test(folder.getName(), Constant.YEAR_REGEX)) {
             radioYear.setSelected(true);
-        } else if (MiscUtils.isValidRegex.test(folder.getName(), MONTH_REGEX)) {
+        } else if (MiscUtils.isValidRegex.test(folder.getName(), Constant.MONTH_REGEX)) {
             radioMonth.setSelected(true);
         } else {
             radioRoot.setSelected(true);
