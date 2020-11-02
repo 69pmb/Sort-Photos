@@ -16,6 +16,7 @@ import java.util.ResourceBundle;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -77,6 +78,8 @@ public class Controller
     private Button saveDirBtn;
     @FXML
     private Button goBtn;
+    @FXML
+    private Text messages;
     private ResourceBundle bundle;
     private Map<TextField, Property> properties;
 
@@ -87,12 +90,16 @@ public class Controller
         resetProperties();
         selectedDir.setText(
                 MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists()).orElse(MyConstant.USER_DIRECTORY));
-        selectedDir.setOnKeyReleased(e -> ifValidSelectedDirectory(() -> {}));
+        selectedDir.setOnKeyReleased(e -> {
+            messages.setText("");
+            isValidSelectedDirectory(() -> {
+            });
+        });
         detectFolder();
         LOG.debug("End initialize");
     }
 
-    private void ifValidSelectedDirectory(Runnable action) {
+    private void isValidSelectedDirectory(Runnable action) {
         String dir = selectedDir.getText();
         File file = new File(dir);
         if (StringUtils.isNotBlank(dir) && file.exists()) {
@@ -111,6 +118,7 @@ public class Controller
     @FXML
     public void selectDirectory() {
         LOG.debug("Start selectDirectory");
+        messages.setText("");
         FileChooser dirChooser = new FileChooser();
         dirChooser.setTitle(bundle.getString("directory.chooser.title"));
         dirChooser.setInitialDirectory(new File(selectedDir.getText()));
@@ -134,7 +142,7 @@ public class Controller
     @FXML
     public void saveDefaultDir() {
         LOG.debug("Start saveDefaultDir");
-        ifValidSelectedDirectory(() -> {
+        isValidSelectedDirectory(() -> {
             MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), selectedDir.getText());
             MyProperties.save();
         });
@@ -197,19 +205,24 @@ public class Controller
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
         List<String> extensions = Arrays
                 .asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), ","), StringUtils.split(videoExtension.getText(), ",")));
-        MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false).stream().map(Picture::new).forEach(picture -> {
+        List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
+        int size = files.size();
+        IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
+            Picture picture = new Picture(files.get(i));
             Date date = picture.getTaken().orElse(picture.getCreation());
             String newName = sdf.format(date);
             try {
-                renameFile(picture, newName, new SimpleDateFormat(YEAR_FORMAT).format(date), new SimpleDateFormat(MONTH_FORMAT).format(date));
+                renameFile(picture, newName, new SimpleDateFormat(YEAR_FORMAT).format(date), new SimpleDateFormat(MONTH_FORMAT).format(date),
+                        (i + 1) + "/" + size);
             } catch (IOException e) {
                 throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
             }
         });
+        messages.setText(bundle.getString("finished"));
         LOG.debug("End process");
     }
 
-    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder) throws IOException {
+    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder, String count) throws IOException {
         String newFilename = newName + MyConstant.DOT + picture.getExtension();
         String newPath;
 
@@ -234,16 +247,17 @@ public class Controller
             if (!newFile.exists()) {
                 Files.move(picture.toPath(), newFile.toPath());
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
-                duplicateDialog(picture, picture.getPath(), picture.getExtension(), newPath, new Picture(newFile));
+                duplicateDialog(picture, picture.getPath(), picture.getExtension(), newPath, new Picture(newFile), count);
             }
         }
     }
 
-    private void duplicateDialog(Picture picture, String absolutePath, String extension, String newPath, Picture newPicture) {
+    private void duplicateDialog(Picture picture, String absolutePath, String extension, String newPath, Picture newPicture, String count) {
         LOG.debug("Start duplicateDialog");
         Stage dialog = new Stage();
         dialog.initOwner(container.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setTitle(count);
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
         gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), CSS_CLASS_BOX, 600), 1, 1);
