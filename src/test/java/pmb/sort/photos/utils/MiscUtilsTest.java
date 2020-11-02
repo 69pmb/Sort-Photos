@@ -1,6 +1,5 @@
-package pmb.sort.photos;
+package pmb.sort.photos.utils;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -16,11 +15,9 @@ import com.sun.javafx.application.PlatformImpl;
 
 import javafx.scene.control.TextField;
 import pmb.my.starter.utils.MyConstant;
-import pmb.sort.photos.utils.MiscUtils;
+import pmb.sort.photos.TestUtils;
 
 class MiscUtilsTest {
-
-    private static final String TEST_RESOURCE_DIR = "src/test/resources/";
 
     @BeforeAll
     static void setup() {
@@ -63,26 +60,26 @@ class MiscUtilsTest {
 
     @Test
     void getTakenTimeOk() {
-        Optional<Date> takenTime = MiscUtils.getTakenTime(new File(TEST_RESOURCE_DIR + "test1.jpg"));
+        Optional<Date> takenTime = MiscUtils.getTakenTime(TestUtils.WITH_EXIF);
         Assertions.assertTrue(takenTime.isPresent());
         Assertions.assertEquals("2008-02-07T11:33", new SimpleDateFormat("yyyy-MM-dd'T'hh:mm").format(takenTime.orElseThrow()));
     }
 
     @Test
     void getTakenTimeKo() {
-        Assertions.assertTrue(MiscUtils.getTakenTime(new File(TEST_RESOURCE_DIR + "test2.jpg")).isEmpty());
+        Assertions.assertTrue(MiscUtils.getTakenTime(TestUtils.WITHOUT_EXIF).isEmpty());
     }
 
     @Test
     void getModelOk() {
-        Optional<String> model = MiscUtils.getModel(new File(TEST_RESOURCE_DIR + "test1.jpg"));
+        Optional<String> model = MiscUtils.getModel(TestUtils.WITH_EXIF);
         Assertions.assertTrue(model.isPresent());
         Assertions.assertEquals("FinePixS1Pro", model.orElseThrow());
     }
 
     @Test
     void getModelKo() {
-        Assertions.assertTrue(MiscUtils.getModel(new File(TEST_RESOURCE_DIR + "test2.jpg")).isEmpty());
+        Assertions.assertTrue(MiscUtils.getModel(TestUtils.WITHOUT_EXIF).isEmpty());
     }
 
 }

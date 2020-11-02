@@ -16,12 +16,23 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import pmb.my.starter.exception.MinorException;
 
+/**
+ * Toolbox for JavaFx component.
+ */
 public final class JavaFxUtils {
 
     private JavaFxUtils() {
         throw new AssertionError("Must not be used");
     }
 
+    /**
+     * Displays a picture.
+     *
+     * @param absolutePath picture path
+     * @param styleClass   css class of the component
+     * @param width        of the picture
+     * @return a component holding the picture
+     */
     public static BorderPane displayPicture(String absolutePath, String styleClass, Integer width) {
         ImageView imageView = new ImageView();
         BorderPane imageViewWrapper = new BorderPane(imageView);
@@ -37,6 +48,14 @@ public final class JavaFxUtils {
         return imageViewWrapper;
     }
 
+    /**
+     * Builds a button.
+     *
+     * @param parent component
+     * @param label  of the button
+     * @param action when clicked
+     * @return the built button
+     */
     public static Button buildButton(Pane parent, String label, EventHandler<ActionEvent> action) {
         Button button = new Button(label);
         button.setAlignment(Pos.CENTER);
@@ -45,6 +64,13 @@ public final class JavaFxUtils {
         return button;
     }
 
+    /**
+     * Builds a text component.
+     *
+     * @param str           label
+     * @param wrappingWidth width
+     * @return the built text
+     */
     public static Text buildText(String str, int wrappingWidth) {
         Text text = new Text(str);
         text.setWrappingWidth(wrappingWidth);
