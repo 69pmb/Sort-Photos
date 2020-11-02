@@ -70,7 +70,6 @@
         </Accordion>
         <HBox spacing="10" GridPane.rowIndex="3">
             <children>
-                <Text fx:id="messages" />
                 <Button fx:id="goBtn" text="%start" onAction="#process" />
                 <RadioButton fx:id="radioYear" text="%radio.year">
                     <toggleGroup>
@@ -79,6 +78,11 @@
                 </RadioButton>
                 <RadioButton fx:id="radioMonth" text="%radio.month" toggleGroup="$radio" />
                 <RadioButton fx:id="radioRoot" text="%radio.root" toggleGroup="$radio" />
+            </children>
+        </HBox>
+        <HBox spacing="10" GridPane.rowIndex="4">
+            <children>
+                <Text fx:id="messages" />
             </children>
         </HBox>
     </children>
