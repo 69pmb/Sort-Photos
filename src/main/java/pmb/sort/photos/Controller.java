@@ -26,9 +26,12 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -46,8 +49,7 @@ import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.JavaFxUtils;
 import pmb.sort.photos.utils.MiscUtils;
 
-public class Controller
-        implements Initializable {
+public class Controller implements Initializable {
 
     private static final Logger LOG = LogManager.getLogger(Controller.class);
 
@@ -83,8 +85,8 @@ public class Controller
         LOG.debug("Start initialize");
         this.bundle = resources;
         resetProperties();
-        selectedDir.setText(
-                MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists()).orElse(MyConstant.USER_DIRECTORY));
+        selectedDir.setText(MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue())
+                .filter(path -> new File(path).exists()).orElse(MyConstant.USER_DIRECTORY));
         selectedDir.setOnKeyReleased(e -> {
             messages.setText("");
             isValidSelectedDirectory(() -> {
@@ -258,18 +260,25 @@ public class Controller
             if (!newFile.exists()) {
                 Files.move(picture.toPath(), newFile.toPath());
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
-                duplicateDialog(picture, picture.getPath(), picture.getExtension(), newPath, new Picture(newFile), count);
+                duplicateDialog(picture, newPath, new Picture(newFile), count);
             }
         }
     }
 
-    private void duplicateDialog(Picture picture, String absolutePath, String extension, String newPath, Picture newPicture, String count) {
+    private void duplicateDialog(Picture picture, String newPath, Picture newPicture, String count) {
         LOG.debug("Start duplicateDialog");
         Stage dialog = new Stage();
         dialog.initOwner(container.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle(count);
+        GridPane root = new GridPane();
+        root.setVgap(10);
         GridPane gridPane = new GridPane();
+        ScrollPane scroll = new ScrollPane(gridPane);
+        scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+        scroll.setPrefHeight(500);
+        scroll.setMaxHeight(700);
         gridPane.setHgap(10);
         gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), Constant.CSS_CLASS_BOX, 600), 1, 1);
         gridPane.add(JavaFxUtils.displayPicture(newPicture.getPath(), Constant.CSS_CLASS_BOX, 600), 2, 1);
@@ -285,43 +294,56 @@ public class Controller
             dialog.close();
         });
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"),
-                e -> overwrite(picture, absolutePath, newPath, newPicture, dialog));
+                e -> overwrite(picture, newPath, newPicture, dialog));
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"),
-                e -> renameWithSuffix(picture, absolutePath, extension, newPath, dialog));
+                e -> renameWithSuffix(picture, newPath, dialog));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.delete"), e -> delete(picture, dialog));
         hBox.setSpacing(10);
 
-        gridPane.add(hBox, 1, 3);
-        Scene scene = new Scene(gridPane);
+        root.add(gridPane, 1, 1);
+        root.add(hBox, 1, 2);
+        GridPane.setMargin(hBox, new Insets(10));
+        Scene scene = new Scene(root);
         scene.getStylesheets().add(Controller.class.getResource(Constant.CSS_FILE).toExternalForm());
         dialog.setScene(scene);
         dialog.showAndWait();
         LOG.debug("End duplicateDialog");
     }
 
-    private void overwrite(Picture picture, String absolutePath, String newPath, Picture newPicture, Stage dialog) {
+    private void delete(Picture picture, Stage dialog) {
+        LOG.debug("Delete");
+        try {
+            dialog.close();
+            Files.deleteIfExists(picture.toPath());
+        } catch (IOException e1) {
+            throw new MinorException("Error deleting file " + picture.getPath(), e1);
+        }
+    }
+
+    private void overwrite(Picture picture, String newPath, Picture newPicture, Stage dialog) {
         LOG.debug("Overwrite");
         try {
             dialog.close();
             Files.move(picture.toPath(), newPicture.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e1) {
-            throw new MinorException("Error when moving file " + absolutePath + " to " + newPath, e1);
+            throw new MinorException("Error moving file " + picture.getPath() + " to " + newPath, e1);
         }
     }
 
-    private void renameWithSuffix(Picture picture, String absolutePath, String extension, String newPath, Stage dialog) {
+    private void renameWithSuffix(Picture picture, String newPath, Stage dialog) {
         LOG.debug("Suffix");
         Integer index = 1;
         File renamedFile;
         do {
-            renamedFile = new File(
-                    StringUtils.substringBeforeLast(newPath, MyConstant.DOT) + Constant.SUFFIX_SEPARATOR + index + MyConstant.DOT + extension);
+            renamedFile = new File(StringUtils.substringBeforeLast(newPath, MyConstant.DOT) + Constant.SUFFIX_SEPARATOR + index + MyConstant.DOT
+                    + picture.getExtension());
             index++;
         } while (renamedFile.exists());
         try {
             dialog.close();
             Files.move(picture.toPath(), renamedFile.toPath());
         } catch (IOException e1) {
-            throw new MinorException("Error when moving file " + absolutePath + " to " + newPath, e1);
+            throw new MinorException("Error renaming file " + picture.getPath() + " to " + newPath, e1);
         }
     }
 
