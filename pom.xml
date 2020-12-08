@@ -14,7 +14,7 @@
     <name>Sort Photos</name>
 
     <properties>
-        <javafx.version>11.0.2</javafx.version>
+        <javafx.version>15.0.1</javafx.version>
     </properties>
 
     <dependencies>
