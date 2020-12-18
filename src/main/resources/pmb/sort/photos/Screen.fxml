@@ -43,14 +43,19 @@
                                 <TextField fx:id="videoExtension" GridPane.columnIndex="2"
                                     GridPane.rowIndex="3" />
 
-                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                <Label text="%properties.enable.folders.organization" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="4" />
+                                <CheckBox fx:id="enableFoldersOrganization" GridPane.columnIndex="2"
+                                    GridPane.rowIndex="4" />
+
+                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
                                     <children>
-                                        <Button onAction="#resetProperties" text="%reset" />
+                                        <Button onAction="#initProperties" text="%reset" />
                                         <Button onAction="#saveProperties" text="%save" />
                                     </children>
                                 </HBox>
                                 <Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
-                                    GridPane.rowIndex="4" />
+                                    GridPane.rowIndex="6" />
                             </children>
                             <columnConstraints>
                                 <ColumnConstraints />

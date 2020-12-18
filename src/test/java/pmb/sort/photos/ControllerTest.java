@@ -26,14 +26,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
 import com.sun.javafx.application.PlatformImpl;
 
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
@@ -61,6 +62,7 @@ class ControllerTest
         controller.radioYear = new RadioButton();
         controller.radioMonth = new RadioButton();
         controller.selectedDir = new TextField();
+        controller.enableFoldersOrganization = new CheckBox();
         controller.messages = new Text();
         controller.goBtn = new Button();
         controller.saveDirBtn = new Button();
@@ -73,7 +75,7 @@ class ControllerTest
     class save_default_dir {
 
         @ParameterizedTest
-        @NullAndEmptySource
+        @EmptySource
         @ValueSource(strings = { "  ", "TEST" })
         void failed_when_incorrect_value_given(String dir) {
             try (MockedStatic<MyProperties> myProperties = mockStatic(MyProperties.class)) {
@@ -109,18 +111,21 @@ class ControllerTest
     }
 
     @Test
-    void reset_properties() {
+    void init_properties() {
         try (MockedStatic<MiscUtils> getValue = mockStatic(MiscUtils.class)) {
-            getValue.when(() -> MiscUtils.getDefaultValue(any(Property.class))).thenReturn("TEST");
+            getValue.when(() -> MiscUtils.getDefaultValue(any(Property.class))).thenReturn("TEST").thenReturn("TEST").thenReturn("TEST")
+                    .thenReturn("false");
 
-            controller.resetProperties();
+            controller.initProperties();
 
             List.of(controller.dateFormat, controller.pictureExtension, controller.videoExtension).forEach(txt -> {
                 assertEquals("TEST", txt.getText());
                 assertFalse(txt.getStyleClass().contains(Constant.CSS_CLASS_ERROR));
             });
+            assertFalse(controller.enableFoldersOrganization.isSelected());
+            List.of(controller.radioYear, controller.radioMonth, controller.radioRoot).forEach(radio -> assertTrue(radio.isDisabled()));
 
-            getValue.verify(times(3), () -> MiscUtils.getDefaultValue(any(Property.class)));
+            getValue.verify(times(4), () -> MiscUtils.getDefaultValue(any(Property.class)));
         }
     }
 
@@ -173,7 +178,7 @@ class ControllerTest
 
             myProperties.verify(() -> MyProperties.get(any()));
         }
-        verify(controller).resetProperties();
+        verify(controller).initProperties();
     }
 
     static Stream<String[]> workDirProvider() {
