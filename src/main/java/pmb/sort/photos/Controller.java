@@ -13,13 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +28,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -62,6 +62,8 @@ public class Controller implements Initializable {
     @FXML
     protected TextField videoExtension;
     @FXML
+    protected CheckBox enableFoldersOrganization;
+    @FXML
     protected Text messageProperties;
     @FXML
     protected RadioButton radioYear;
@@ -82,15 +84,15 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         LOG.debug("Start initialize");
         this.bundle = resources;
-        resetProperties();
-        selectedDir.setText(MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue())
-                .filter(path -> new File(path).exists()).orElse(MyConstant.USER_DIRECTORY));
+        initProperties();
+        selectedDir.setText(
+                MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists()).orElse(MyConstant.USER_DIRECTORY));
         selectedDir.setOnKeyReleased(e -> {
             messages.setText("");
-            isValidSelectedDirectory(() -> {
-            });
+            isValidSelectedDirectory(() -> {});
         });
         detectFolder();
+        enableFoldersOrganization.setOnAction(e -> disableRadioButtons());
         LOG.debug("End initialize");
     }
 
@@ -149,7 +151,7 @@ public class Controller implements Initializable {
     }
 
     @FXML
-    public void resetProperties() {
+    public void initProperties() {
         LOG.debug("Start resetProperties");
         properties = Map.of(dateFormat, Property.DATE_FORMAT, pictureExtension, Property.PICTURE_EXTENSION,
                 videoExtension, Property.VIDEO_EXTENSION);
@@ -157,7 +159,13 @@ public class Controller implements Initializable {
             field.setText(MiscUtils.getDefaultValue(prop));
             field.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
         });
+        enableFoldersOrganization.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(Property.ENABLE_FOLDERS_ORGANIZATION)));
+        disableRadioButtons();
         LOG.debug("End resetProperties");
+    }
+
+    private void disableRadioButtons() {
+        List.of(radioYear, radioMonth, radioRoot).forEach(radio -> radio.setDisable(!enableFoldersOrganization.isSelected()));
     }
 
     @FXML
@@ -173,8 +181,8 @@ public class Controller implements Initializable {
             LOG.debug("Save properties");
             goBtn.setDisable(false);
             messageProperties.setText(bundle.getString("properties.saved"));
-            properties.entrySet().stream().filter(e -> e.getValue() != Property.DEFAULT_WORKING_DIR)
-            .forEach(e -> MyProperties.set(e.getValue().getValue(), e.getKey().getText()));
+            properties.entrySet().stream().forEach(e -> MyProperties.set(e.getValue().getValue(), e.getKey().getText()));
+            MyProperties.set(Property.ENABLE_FOLDERS_ORGANIZATION.getValue(), Boolean.toString(enableFoldersOrganization.isSelected()));
             MyProperties.save();
             detectFolder();
         }
@@ -182,16 +190,13 @@ public class Controller implements Initializable {
     }
 
     private List<String> inputsValidation() {
-        Supplier<Stream<TextField>> fields = () -> properties.keySet().stream().filter(Predicate.not(selectedDir::equals));
-        List<TextField> blanks = fields.get().filter(MiscUtils.isBlank).collect(Collectors.toList());
-        Optional<TextField> invalidDate = Optional.of(dateFormat)
-                .filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
+        List<TextField> blanks = properties.keySet().stream().filter(MiscUtils.isBlank).collect(Collectors.toList());
+        Optional<TextField> invalidDate = Optional.of(dateFormat).filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
         List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
-                .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters))
-                .collect(Collectors.toList());
-        fields.get().forEach(f -> f.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR));
-        Stream.of(blanks, invalidDate.map(List::of).orElse(new ArrayList<>()), invalidExtensions).flatMap(List::stream)
-        .collect(Collectors.toSet()).forEach(f -> f.getStyleClass().add(Constant.CSS_CLASS_ERROR));
+                .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
+        properties.keySet().stream().forEach(f -> f.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR));
+        Stream.of(blanks, invalidDate.map(List::of).orElse(new ArrayList<>()), invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
+                .forEach(f -> f.getStyleClass().add(Constant.CSS_CLASS_ERROR));
 
         List<String> warnings = new ArrayList<>();
         if (!blanks.isEmpty()) {
@@ -239,13 +244,13 @@ public class Controller implements Initializable {
         String newFilename = newName + MyConstant.DOT + picture.getExtension();
         String newPath;
 
-        if (radioRoot.isSelected()) {
+        if (enableFoldersOrganization.isSelected() && radioRoot.isSelected()) {
             String yearPath = selectedDir.getText() + MyConstant.FS + yearFolder;
             String monthPath = yearPath + MyConstant.FS + monthFolder;
             MyFileUtils.createFolderIfNotExists(yearPath);
             MyFileUtils.createFolderIfNotExists(monthPath);
             newPath = monthPath + MyConstant.FS + newFilename;
-        } else if (radioYear.isSelected()) {
+        } else if (enableFoldersOrganization.isSelected() && radioYear.isSelected()) {
             String monthPath = selectedDir.getText() + MyConstant.FS + monthFolder;
             MyFileUtils.createFolderIfNotExists(monthPath);
             newPath = monthPath + MyConstant.FS + newFilename;
