@@ -2,7 +2,7 @@ package pmb.sort.photos.utils;
 
 public final class Constant {
 
-    public static final String SUFFIX_SEPARATOR = "-";
+    public static final String SUFFIX_SEPARATOR = "~";
     public static final String EXTENSION_SEPARATOR = ",";
     public static final String CSS_FILE = "application.css";
     public static final String CSS_CLASS_ERROR = "error";
