@@ -6,7 +6,8 @@ public enum Property {
     PICTURE_EXTENSION("picture_extension"),
     VIDEO_EXTENSION("video_extension"),
     DATE_FORMAT("date_format"),
-    ENABLE_FOLDERS_ORGANIZATION("enable_folders_organization");
+    ENABLE_FOLDERS_ORGANIZATION("enable_folders_organization"),
+    OVERWRITE_IDENTICAL("overwrite_identical");
 
     private final String value;
 

@@ -48,19 +48,24 @@
                                 <CheckBox fx:id="enableFoldersOrganization" GridPane.columnIndex="2"
                                     GridPane.rowIndex="4" />
 
-                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                                <Label text="%properties.overwrite.identical" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="5" />
+                                <CheckBox fx:id="overwriteIdentical" GridPane.columnIndex="2"
+                                    GridPane.rowIndex="5" />
+
+                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
                                     <children>
                                         <Button onAction="#initProperties" text="%reset" />
                                         <Button onAction="#saveProperties" text="%save" />
                                     </children>
                                 </HBox>
                                 <Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
-                                    GridPane.rowIndex="6" />
+                                    GridPane.rowIndex="7" />
                             </children>
                             <columnConstraints>
                                 <ColumnConstraints />
-                                <ColumnConstraints maxWidth="400" minWidth="150" prefWidth="200" />
-                                <ColumnConstraints maxWidth="500.0" minWidth="142.0" prefWidth="480.0" />
+                                <ColumnConstraints maxWidth="450" minWidth="150" prefWidth="300" />
+                                <ColumnConstraints maxWidth="450" minWidth="140" prefWidth="400" />
                             </columnConstraints>
                             <rowConstraints>
                                 <RowConstraints />
