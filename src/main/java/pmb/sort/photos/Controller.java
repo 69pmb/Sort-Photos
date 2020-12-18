@@ -64,6 +64,8 @@ public class Controller implements Initializable {
     @FXML
     protected CheckBox enableFoldersOrganization;
     @FXML
+    protected CheckBox overwriteIdentical;
+    @FXML
     protected Text messageProperties;
     @FXML
     protected RadioButton radioYear;
@@ -78,7 +80,8 @@ public class Controller implements Initializable {
     @FXML
     protected Text messages;
     private ResourceBundle bundle;
-    private Map<TextField, Property> properties;
+    private Map<Property, TextField> textProperties;
+    private Map<Property, CheckBox> boxProperties;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -153,13 +156,14 @@ public class Controller implements Initializable {
     @FXML
     public void initProperties() {
         LOG.debug("Start resetProperties");
-        properties = Map.of(dateFormat, Property.DATE_FORMAT, pictureExtension, Property.PICTURE_EXTENSION,
-                videoExtension, Property.VIDEO_EXTENSION);
-        properties.forEach((field, prop) -> {
-            field.setText(MiscUtils.getDefaultValue(prop));
-            field.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
+        textProperties = Map.of(Property.DATE_FORMAT, dateFormat, Property.PICTURE_EXTENSION, pictureExtension, Property.VIDEO_EXTENSION,
+                videoExtension);
+        textProperties.forEach((prop, text) -> {
+            text.setText(MiscUtils.getDefaultValue(prop));
+            text.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
         });
-        enableFoldersOrganization.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(Property.ENABLE_FOLDERS_ORGANIZATION)));
+        boxProperties = Map.of(Property.ENABLE_FOLDERS_ORGANIZATION, enableFoldersOrganization, Property.OVERWRITE_IDENTICAL, overwriteIdentical);
+        boxProperties.forEach((prop, box) -> box.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(prop))));
         disableRadioButtons();
         LOG.debug("End resetProperties");
     }
@@ -181,8 +185,8 @@ public class Controller implements Initializable {
             LOG.debug("Save properties");
             goBtn.setDisable(false);
             messageProperties.setText(bundle.getString("properties.saved"));
-            properties.entrySet().stream().forEach(e -> MyProperties.set(e.getValue().getValue(), e.getKey().getText()));
-            MyProperties.set(Property.ENABLE_FOLDERS_ORGANIZATION.getValue(), Boolean.toString(enableFoldersOrganization.isSelected()));
+            textProperties.entrySet().stream().forEach(e -> MyProperties.set(e.getKey().getValue(), e.getValue().getText()));
+            boxProperties.entrySet().stream().forEach(e -> MyProperties.set(e.getKey().getValue(), Boolean.toString(e.getValue().isSelected())));
             MyProperties.save();
             detectFolder();
         }
@@ -190,11 +194,11 @@ public class Controller implements Initializable {
     }
 
     private List<String> inputsValidation() {
-        List<TextField> blanks = properties.keySet().stream().filter(MiscUtils.isBlank).collect(Collectors.toList());
+        List<TextField> blanks = textProperties.values().stream().filter(MiscUtils.isBlank).collect(Collectors.toList());
         Optional<TextField> invalidDate = Optional.of(dateFormat).filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
         List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
                 .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
-        properties.keySet().stream().forEach(f -> f.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR));
+        textProperties.values().stream().forEach(f -> f.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR));
         Stream.of(blanks, invalidDate.map(List::of).orElse(new ArrayList<>()), invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
                 .forEach(f -> f.getStyleClass().add(Constant.CSS_CLASS_ERROR));
 
@@ -262,8 +266,9 @@ public class Controller implements Initializable {
         if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
                 StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
             LOG.info("New path {} for {}", newPath, picture.getPath());
-            if (!newFile.exists()) {
-                Files.move(picture.toPath(), newFile.toPath());
+            if (!newFile.exists() || (overwriteIdentical.isSelected() && picture.equals(new Picture(newFile))
+                    && !Files.isSameFile(picture.toPath(), newFile.toPath()))) {
+                Files.move(picture.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
                 duplicateDialog(picture, newPath, new Picture(newFile), count);
             }

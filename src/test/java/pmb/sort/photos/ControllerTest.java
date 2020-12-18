@@ -67,6 +67,7 @@ class ControllerTest
         controller.goBtn = new Button();
         controller.saveDirBtn = new Button();
         controller.dateFormat = new TextField();
+        controller.overwriteIdentical = new CheckBox();
         controller.pictureExtension = new TextField();
         controller.videoExtension = new TextField();
     }
@@ -114,7 +115,7 @@ class ControllerTest
     void init_properties() {
         try (MockedStatic<MiscUtils> getValue = mockStatic(MiscUtils.class)) {
             getValue.when(() -> MiscUtils.getDefaultValue(any(Property.class))).thenReturn("TEST").thenReturn("TEST").thenReturn("TEST")
-                    .thenReturn("false");
+                    .thenReturn("false").thenReturn("true");
 
             controller.initProperties();
 
@@ -123,9 +124,10 @@ class ControllerTest
                 assertFalse(txt.getStyleClass().contains(Constant.CSS_CLASS_ERROR));
             });
             assertFalse(controller.enableFoldersOrganization.isSelected());
+            assertTrue(controller.overwriteIdentical.isSelected());
             List.of(controller.radioYear, controller.radioMonth, controller.radioRoot).forEach(radio -> assertTrue(radio.isDisabled()));
 
-            getValue.verify(times(4), () -> MiscUtils.getDefaultValue(any(Property.class)));
+            getValue.verify(times(5), () -> MiscUtils.getDefaultValue(any(Property.class)));
         }
     }
 
