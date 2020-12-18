@@ -30,8 +30,6 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -165,7 +163,7 @@ public class Controller implements Initializable {
     @FXML
     public void saveProperties() {
         LOG.debug("Start saveProperties");
-        List<String> warnings = validation();
+        List<String> warnings = inputsValidation();
 
         if (!warnings.isEmpty()) {
             LOG.debug("Incorrect inputs");
@@ -183,9 +181,8 @@ public class Controller implements Initializable {
         LOG.debug("End saveProperties");
     }
 
-    private List<String> validation() {
-        Supplier<Stream<TextField>> fields = () -> properties.keySet().stream()
-                .filter(Predicate.not(selectedDir::equals));
+    private List<String> inputsValidation() {
+        Supplier<Stream<TextField>> fields = () -> properties.keySet().stream().filter(Predicate.not(selectedDir::equals));
         List<TextField> blanks = fields.get().filter(MiscUtils.isBlank).collect(Collectors.toList());
         Optional<TextField> invalidDate = Optional.of(dateFormat)
                 .filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
@@ -220,13 +217,17 @@ public class Controller implements Initializable {
         int size = files.size();
         IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
             Picture picture = new Picture(files.get(i));
-            Date date = picture.getTaken().orElse(picture.getCreation());
-            String newName = sdf.format(date);
-            try {
-                renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
-                        new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), (i + 1) + "/" + size);
-            } catch (IOException e) {
-                throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
+            if (picture.getTaken().isPresent()) {
+                Date date = picture.getTaken().get();
+                String newName = sdf.format(date);
+                try {
+                    renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
+                            new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), (i + 1) + "/" + size);
+                } catch (IOException e) {
+                    throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
+                }
+            } else {
+                LOG.warn("No taken date for picture: {}", picture.getPath());
             }
         });
         messages.setText(bundle.getString("finished"));
@@ -253,10 +254,9 @@ public class Controller implements Initializable {
         }
 
         File newFile = new File(newPath);
-        if (!StringUtils.equals(newPath, picture.getPath())
-                && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
-                        StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
-            LOG.info("New path {}", newPath);
+        if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
+                StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
+            LOG.info("New path {} for {}", newPath, picture.getPath());
             if (!newFile.exists()) {
                 Files.move(picture.toPath(), newFile.toPath());
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
@@ -265,7 +265,7 @@ public class Controller implements Initializable {
         }
     }
 
-    private void duplicateDialog(Picture picture, String newPath, Picture newPicture, String count) {
+    private void duplicateDialog(Picture picture, String newPath, Picture existingPicture, String count) {
         LOG.debug("Start duplicateDialog");
         Stage dialog = new Stage();
         dialog.initOwner(container.getScene().getWindow());
@@ -274,29 +274,22 @@ public class Controller implements Initializable {
         GridPane root = new GridPane();
         root.setVgap(10);
         GridPane gridPane = new GridPane();
-        ScrollPane scroll = new ScrollPane(gridPane);
-        scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
-        scroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-        scroll.setPrefHeight(500);
-        scroll.setMaxHeight(700);
+        JavaFxUtils.buildScrollPane(gridPane, 500, 700);
         gridPane.setHgap(10);
         gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), Constant.CSS_CLASS_BOX, 600), 1, 1);
-        gridPane.add(JavaFxUtils.displayPicture(newPicture.getPath(), Constant.CSS_CLASS_BOX, 600), 2, 1);
+        gridPane.add(JavaFxUtils.displayPicture(existingPicture.getPath(), Constant.CSS_CLASS_BOX, 600), 2, 1);
         gridPane.add(JavaFxUtils.buildText(picture.prettyPrint(bundle), 400), 1, 2);
-        gridPane.add(JavaFxUtils.buildText(newPicture.prettyPrint(bundle), 400), 2, 2);
+        gridPane.add(JavaFxUtils.buildText(existingPicture.prettyPrint(bundle), 400), 2, 2);
 
         // Buttons
         HBox hBox = new HBox();
-        hBox.getChildren().add(new Text(
-                bundle.getString(picture.equals(newPicture) ? "duplicate.warning.equals" : "duplicate.warning")));
+        hBox.getChildren().add(new Text(bundle.getString(picture.equals(existingPicture) ? "duplicate.warning.equals" : "duplicate.warning")));
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.cancel"), e -> {
             LOG.debug("Do nothing");
             dialog.close();
         });
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"),
-                e -> overwrite(picture, newPath, newPicture, dialog));
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"),
-                e -> renameWithSuffix(picture, newPath, dialog));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"), e -> overwrite(picture, newPath, existingPicture, dialog));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"), e -> renameWithSuffix(picture, newPath, dialog));
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.delete"), e -> delete(picture, dialog));
         hBox.setSpacing(10);
 
@@ -320,11 +313,11 @@ public class Controller implements Initializable {
         }
     }
 
-    private void overwrite(Picture picture, String newPath, Picture newPicture, Stage dialog) {
+    private void overwrite(Picture picture, String newPath, Picture existingPicture, Stage dialog) {
         LOG.debug("Overwrite");
         try {
             dialog.close();
-            Files.move(picture.toPath(), newPicture.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.move(picture.toPath(), existingPicture.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e1) {
             throw new MinorException("Error moving file " + picture.getPath() + " to " + newPath, e1);
         }
@@ -332,18 +325,26 @@ public class Controller implements Initializable {
 
     private void renameWithSuffix(Picture picture, String newPath, Stage dialog) {
         LOG.debug("Suffix");
+
         Integer index = 1;
-        File renamedFile;
-        do {
-            renamedFile = new File(StringUtils.substringBeforeLast(newPath, MyConstant.DOT) + Constant.SUFFIX_SEPARATOR + index + MyConstant.DOT
-                    + picture.getExtension());
-            index++;
-        } while (renamedFile.exists());
-        try {
-            dialog.close();
-            Files.move(picture.toPath(), renamedFile.toPath());
-        } catch (IOException e1) {
-            throw new MinorException("Error renaming file " + picture.getPath() + " to " + newPath, e1);
+        String bareNewPath = StringUtils.substringBeforeLast(newPath, MyConstant.DOT);
+        String suffix = StringUtils.substringAfterLast(bareNewPath, Constant.SUFFIX_SEPARATOR);
+        if (StringUtils.isNumeric(suffix)) {
+            index = Integer.valueOf(suffix) + 1;
+        }
+        String suffixedPath = StringUtils.substringBeforeLast(bareNewPath, Constant.SUFFIX_SEPARATOR) + Constant.SUFFIX_SEPARATOR + index
+                + MyConstant.DOT + picture.getExtension();
+
+        File suffixedFile = new File(suffixedPath);
+        dialog.close();
+        if (!suffixedFile.exists()) {
+            try {
+                Files.move(picture.toPath(), suffixedFile.toPath());
+            } catch (IOException e1) {
+                throw new MinorException("Error renaming file " + picture.getPath() + " to " + newPath, e1);
+            }
+        } else {
+            duplicateDialog(picture, suffixedPath, new Picture(suffixedFile), "");
         }
     }
 
