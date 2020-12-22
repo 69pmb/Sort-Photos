@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.text.MessageFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -27,7 +31,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -41,6 +48,7 @@ import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyFileUtils;
 import pmb.my.starter.utils.MyProperties;
+import pmb.sort.photos.model.Fallback;
 import pmb.sort.photos.model.Picture;
 import pmb.sort.photos.model.Property;
 import pmb.sort.photos.utils.Constant;
@@ -79,6 +87,14 @@ public class Controller implements Initializable {
     protected Button goBtn;
     @FXML
     protected Text messages;
+    @FXML
+    protected RadioButton fallbackEdit;
+    @FXML
+    protected RadioButton fallbackCreate;
+    @FXML
+    protected RadioButton fallbackPattern;
+    @FXML
+    protected TextField pattern;
     private ResourceBundle bundle;
     private Map<Property, TextField> textProperties;
     private Map<Property, CheckBox> boxProperties;
@@ -156,16 +172,46 @@ public class Controller implements Initializable {
     @FXML
     public void initProperties() {
         LOG.debug("Start resetProperties");
+        messageProperties.setText("");
         textProperties = Map.of(Property.DATE_FORMAT, dateFormat, Property.PICTURE_EXTENSION, pictureExtension, Property.VIDEO_EXTENSION,
-                videoExtension);
+                videoExtension, Property.FALL_BACK_PATTERN, pattern);
         textProperties.forEach((prop, text) -> {
             text.setText(MiscUtils.getDefaultValue(prop));
             text.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
         });
         boxProperties = Map.of(Property.ENABLE_FOLDERS_ORGANIZATION, enableFoldersOrganization, Property.OVERWRITE_IDENTICAL, overwriteIdentical);
         boxProperties.forEach((prop, box) -> box.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(prop))));
+        initFallbackValue();
         disableRadioButtons();
         LOG.debug("End resetProperties");
+    }
+
+    private void initFallbackValue() {
+        MyProperties.get(Property.FALL_BACK_CHOICE.getValue()).map(StringUtils::upperCase).map(Fallback::valueOf).ifPresent(choice -> {
+            switch (choice) {
+                case CREATE:
+                    fallbackCreate.setSelected(true);
+                    fallbackEdit.setSelected(false);
+                    fallbackPattern.setSelected(false);
+                    pattern.setDisable(true);
+                    break;
+                case EDIT:
+                    fallbackCreate.setSelected(false);
+                    fallbackEdit.setSelected(true);
+                    fallbackPattern.setSelected(false);
+                    pattern.setDisable(true);
+                    break;
+                case PATTERN:
+                    fallbackCreate.setSelected(false);
+                    fallbackEdit.setSelected(false);
+                    fallbackPattern.setSelected(true);
+                    pattern.setDisable(false);
+                    break;
+            }
+        });
+        fallbackPattern.setOnAction(e -> pattern.setDisable(!fallbackPattern.isSelected()));
+        fallbackEdit.setOnAction(e -> pattern.setDisable(fallbackEdit.isSelected()));
+        fallbackCreate.setOnAction(e -> pattern.setDisable(fallbackCreate.isSelected()));
     }
 
     private void disableRadioButtons() {
@@ -187,6 +233,7 @@ public class Controller implements Initializable {
             messageProperties.setText(bundle.getString("properties.saved"));
             textProperties.entrySet().stream().forEach(e -> MyProperties.set(e.getKey().getValue(), e.getValue().getText()));
             boxProperties.entrySet().stream().forEach(e -> MyProperties.set(e.getKey().getValue(), Boolean.toString(e.getValue().isSelected())));
+            saveFallbackValue();
             MyProperties.save();
             detectFolder();
         }
@@ -195,18 +242,19 @@ public class Controller implements Initializable {
 
     private List<String> inputsValidation() {
         List<TextField> blanks = textProperties.values().stream().filter(MiscUtils.isBlank).collect(Collectors.toList());
-        Optional<TextField> invalidDate = Optional.of(dateFormat).filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters));
+        List<TextField> invalidDate = List.of(dateFormat, pattern).stream()
+                .filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
         List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
                 .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
         textProperties.values().stream().forEach(f -> f.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR));
-        Stream.of(blanks, invalidDate.map(List::of).orElse(new ArrayList<>()), invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
+        Stream.of(blanks, invalidDate, invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
                 .forEach(f -> f.getStyleClass().add(Constant.CSS_CLASS_ERROR));
 
         List<String> warnings = new ArrayList<>();
         if (!blanks.isEmpty()) {
             warnings.add(bundle.getString("warning.empty"));
         }
-        if (invalidDate.isPresent()) {
+        if (!invalidDate.isEmpty()) {
             warnings.add(bundle.getString("warning.date.format"));
         }
         if (!invalidExtensions.isEmpty()) {
@@ -215,19 +263,50 @@ public class Controller implements Initializable {
         return warnings;
     }
 
+    private void saveFallbackValue() {
+        String fallbackValue;
+        if (fallbackCreate.isSelected()) {
+            fallbackValue = Fallback.CREATE.toString();
+        } else if (fallbackEdit.isSelected()) {
+            fallbackValue = Fallback.EDIT.toString();
+        } else {
+            fallbackValue = Fallback.PATTERN.toString();
+        }
+        MyProperties.set(Property.FALL_BACK_CHOICE.getValue(), fallbackValue);
+    }
+
     @FXML
     public void process() {
         LOG.debug("Start process");
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
-        List<String> extensions = Arrays
-                .asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
-                        StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
+        SimpleDateFormat patternSdf = new SimpleDateFormat(pattern.getText());
+        List<String> extensions = Arrays.asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
+                StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
         List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
         int size = files.size();
+        boolean alertShown = false;
+        AtomicBoolean useFallback = new AtomicBoolean(false);
+        String message;
+        Function<Picture, Date> fallbackDate;
+        if (fallbackCreate.isSelected()) {
+            message = bundle.getString("alert.create");
+            fallbackDate = Picture::getCreation;
+        } else if (fallbackEdit.isSelected()) {
+            message = bundle.getString("alert.edit");
+            fallbackDate = Picture::getModified;
+        } else {
+            message = MessageFormat.format(bundle.getString("alert.pattern"), pattern.getText());
+            fallbackDate = picture -> {
+                try {
+                    return patternSdf.parse(picture.getName());
+                } catch (ParseException e) {
+                    throw new MinorException("Error when parsing: " + picture.getName() + " with pattern: " + pattern.getText());
+                }
+            };
+        }
         IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
             Picture picture = new Picture(files.get(i));
-            if (picture.getTaken().isPresent()) {
-                Date date = picture.getTaken().get();
+            picture.getTaken().or(() -> processNoTakenDate(alertShown, useFallback, picture, message, fallbackDate)).ifPresent(date -> {
                 String newName = sdf.format(date);
                 try {
                     renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
@@ -235,16 +314,29 @@ public class Controller implements Initializable {
                 } catch (IOException e) {
                     throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
                 }
-            } else {
-                LOG.warn("No taken date for picture: {}", picture.getPath());
-            }
+            });
         });
         messages.setText(bundle.getString("finished"));
         LOG.debug("End process");
     }
 
-    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder, String count)
-            throws IOException {
+    private Optional<Date> processNoTakenDate(boolean alertShown, AtomicBoolean useFallback, Picture picture, String message,
+            Function<Picture, Date> fallbackDate) {
+        LOG.warn("No taken date for picture: {}", picture.getPath());
+        if (!alertShown) {
+            useFallback.set(new Alert(AlertType.CONFIRMATION,
+                    MessageFormat.format(bundle.getString("alert.message"), picture.getName()) + MyConstant.NEW_LINE + message, ButtonType.YES,
+                    ButtonType.NO).showAndWait().map(response -> response == ButtonType.YES).orElse(false));
+        }
+        if (useFallback.get()) {
+            return Optional.of(fallbackDate.apply(picture));
+        } else {
+            LOG.info("Picture is ignored");
+            return Optional.empty();
+        }
+    }
+
+    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder, String count) throws IOException {
         String newFilename = newName + MyConstant.DOT + picture.getExtension();
         String newPath;
 
