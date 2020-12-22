@@ -53,14 +53,29 @@
                                 <CheckBox fx:id="overwriteIdentical" GridPane.columnIndex="2"
                                     GridPane.rowIndex="5" />
 
-                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
+								<Label text="%properties.fallback" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="6" />
+								<HBox spacing="10" GridPane.rowIndex="7" GridPane.columnIndex="1" GridPane.columnSpan="2">
+									<RadioButton fx:id="fallbackCreate" text="%properties.fallback.create">
+										<toggleGroup>
+											<ToggleGroup fx:id="fallback" />
+										</toggleGroup>
+									</RadioButton>
+									<RadioButton fx:id="fallbackEdit" text="%properties.fallback.edit"
+										toggleGroup="$fallback" />
+									<RadioButton fx:id="fallbackPattern" text="%properties.fallback.pattern"
+										toggleGroup="$fallback" />
+									<TextField fx:id="pattern" />
+								</HBox>
+
+                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="8">
                                     <children>
                                         <Button onAction="#initProperties" text="%reset" />
                                         <Button onAction="#saveProperties" text="%save" />
                                     </children>
                                 </HBox>
                                 <Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
-                                    GridPane.rowIndex="7" />
+                                    GridPane.rowIndex="9" />
                             </children>
                             <columnConstraints>
                                 <ColumnConstraints />

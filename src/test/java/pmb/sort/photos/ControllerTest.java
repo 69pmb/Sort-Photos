@@ -70,6 +70,10 @@ class ControllerTest
         controller.overwriteIdentical = new CheckBox();
         controller.pictureExtension = new TextField();
         controller.videoExtension = new TextField();
+        controller.pattern = new TextField();
+        controller.fallbackPattern = new RadioButton();
+        controller.fallbackCreate = new RadioButton();
+        controller.fallbackEdit = new RadioButton();
     }
 
     @Nested

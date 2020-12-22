@@ -7,7 +7,9 @@ public enum Property {
     VIDEO_EXTENSION("video_extension"),
     DATE_FORMAT("date_format"),
     ENABLE_FOLDERS_ORGANIZATION("enable_folders_organization"),
-    OVERWRITE_IDENTICAL("overwrite_identical");
+    OVERWRITE_IDENTICAL("overwrite_identical"),
+    FALL_BACK_CHOICE("fall_back_choice"),
+    FALL_BACK_PATTERN("fall_back_pattern");
 
     private final String value;
 
