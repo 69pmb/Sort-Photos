@@ -62,6 +62,7 @@ class ControllerTest
         controller.radioYear = new RadioButton();
         controller.radioMonth = new RadioButton();
         controller.selectedDir = new TextField();
+        controller.defaultDirectory = "";
         controller.enableFoldersOrganization = new CheckBox();
         controller.messages = new Text();
         controller.goBtn = new Button();
@@ -139,25 +140,30 @@ class ControllerTest
     class select_directory {
 
         @Test
-        void when_no_file_selected() {
+        void when_no_file_selected_and_default_dir_not_exist() {
+            controller.defaultDirectory = TestUtils.WITH_EXIF.getParentFile().getAbsolutePath();
             assertTrue(StringUtils.isBlank(controller.selectedDir.getText()));
             controller = spy(controller);
-            doReturn(null).when(controller).chooseDirectory();
+            doReturn(null).when(controller).chooseDirectory(new File(controller.defaultDirectory));
 
             controller.selectDirectory();
 
-            assertAll(() -> assertEquals("", controller.selectedDir.getText()), () -> assertTrue(controller.goBtn.isDisable()),
-                    () -> assertTrue(controller.saveDirBtn.isDisable()), () -> assertFalse(controller.radioYear.isSelected()),
-                    () -> assertFalse(controller.radioMonth.isSelected()), () -> assertFalse(controller.radioRoot.isSelected()));
+            assertAll(() -> assertEquals(controller.defaultDirectory, controller.selectedDir.getText()),
+                    () -> assertTrue(controller.goBtn.isDisable()), () -> assertTrue(controller.saveDirBtn.isDisable()),
+                    () -> assertFalse(controller.radioYear.isSelected()), () -> assertFalse(controller.radioMonth.isSelected()),
+                    () -> assertFalse(controller.radioRoot.isSelected()));
+
+            verify(controller).chooseDirectory(TestUtils.WITH_EXIF.getParentFile());
+            verify(controller).isValidSelectedDirectory(() -> {});
         }
 
         @ParameterizedTest(name = "when {0} is selected expected year to be {1}, month {2} and root {3}")
         @CsvSource({ "2020, true, false, false", "03.2019/test2.jpg, false, true, false" })
-        void when_a_file_is_selected(String selectedFile, boolean isYear, boolean isMonth, boolean isRoot) {
-            assertTrue(StringUtils.isBlank(controller.selectedDir.getText()));
+        void when_a_file_is_selected_and_default_dir_exist(String selectedFile, boolean isYear, boolean isMonth, boolean isRoot) {
+            controller.selectedDir.setText(TestUtils.WITH_EXIF.getAbsolutePath());
             controller = spy(controller);
             File folder = TestUtils.GET_FILE.apply(selectedFile);
-            doReturn(folder).when(controller).chooseDirectory();
+            doReturn(folder).when(controller).chooseDirectory(TestUtils.WITH_EXIF.getParentFile());
 
             controller.selectDirectory();
 
@@ -166,6 +172,9 @@ class ControllerTest
                     () -> assertFalse(controller.goBtn.isDisable()), () -> assertFalse(controller.saveDirBtn.isDisable()),
                     () -> assertEquals(isYear, controller.radioYear.isSelected()), () -> assertEquals(isMonth, controller.radioMonth.isSelected()),
                     () -> assertEquals(isRoot, controller.radioRoot.isSelected()));
+
+            verify(controller).chooseDirectory(TestUtils.WITH_EXIF.getParentFile());
+            verify(controller, never()).isValidSelectedDirectory(() -> {});
         }
 
     }

@@ -90,6 +90,7 @@ public class Controller
     protected RadioButton fallbackPattern;
     @FXML
     protected TextField pattern;
+    protected String defaultDirectory;
     private ResourceBundle bundle;
     private Map<Property, TextField> textProperties;
     private Map<Property, CheckBox> boxProperties;
@@ -99,8 +100,9 @@ public class Controller
         LOG.debug("Start initialize");
         this.bundle = resources;
         initProperties();
-        selectedDir.setText(
-                MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists()).orElse(MyConstant.USER_DIRECTORY));
+        defaultDirectory = MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists())
+                .orElse(MyConstant.USER_DIRECTORY);
+        selectedDir.setText(defaultDirectory);
         selectedDir.setOnKeyReleased(e -> {
             messages.setText("");
             isValidSelectedDirectory(() -> {});
@@ -110,7 +112,7 @@ public class Controller
         LOG.debug("End initialize");
     }
 
-    private void isValidSelectedDirectory(Runnable action) {
+    protected void isValidSelectedDirectory(Runnable action) {
         String dir = selectedDir.getText();
         File file = new File(dir);
         if (StringUtils.isNotBlank(dir) && file.exists()) {
@@ -130,7 +132,13 @@ public class Controller
     public void selectDirectory() {
         LOG.debug("Start selectDirectory");
         messages.setText("");
-        File dir = chooseDirectory();
+        File inputDir = new File(selectedDir.getText());
+        if (!inputDir.exists()) {
+            selectedDir.setText(defaultDirectory);
+            inputDir = new File(defaultDirectory);
+            isValidSelectedDirectory(() -> {});
+        }
+        File dir = chooseDirectory(inputDir);
         if (dir != null) {
             LOG.debug("A directory was selected");
             if (dir.isFile()) {
@@ -147,10 +155,10 @@ public class Controller
         LOG.debug("End selectDirectory");
     }
 
-    public File chooseDirectory() {
+    public File chooseDirectory(File inputDir) {
         FileChooser dirChooser = new FileChooser();
         dirChooser.setTitle(bundle.getString("directory.chooser.title"));
-        dirChooser.setInitialDirectory(new File(selectedDir.getText()));
+        dirChooser.setInitialDirectory(inputDir);
         return dirChooser.showOpenDialog(container.getScene().getWindow());
     }
 
