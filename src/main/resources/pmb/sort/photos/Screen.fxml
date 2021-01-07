@@ -8,20 +8,20 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="640.0" prefWidth="1000.0" vgap="10"
+<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="640.0" prefWidth="1000.0" vgap="10" 
     xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pmb.sort.photos.Controller">
     <children>
         <HBox spacing="10" GridPane.rowIndex="1">
             <children>
                 <TextField fx:id="selectedDir" prefHeight="31.0" prefWidth="400">
-                    <HBox.margin>
-                        <Insets left="10.0" />
-                    </HBox.margin>
                 </TextField>
                 <Button alignment="CENTER" mnemonicParsing="false" onAction="#selectDirectory" text="%browse" />
                 <Button fx:id="saveDirBtn" alignment="CENTER" mnemonicParsing="false" onAction="#saveDefaultDir"
                     text="%directory.chooser.save" />
             </children>
+            <GridPane.margin>
+                <Insets left="10.0" />
+            </GridPane.margin>
         </HBox>
         <Accordion GridPane.rowIndex="2">
             <panes>
@@ -92,10 +92,12 @@
                     </content>
                 </TitledPane>
             </panes>
+            <GridPane.margin>
+                <Insets left="10.0" />
+            </GridPane.margin>
         </Accordion>
         <HBox spacing="10" GridPane.rowIndex="3">
             <children>
-                <Button fx:id="goBtn" text="%start" onAction="#process" />
                 <RadioButton fx:id="radioYear" text="%radio.year">
                     <toggleGroup>
                         <ToggleGroup fx:id="radio" />
@@ -104,11 +106,25 @@
                 <RadioButton fx:id="radioMonth" text="%radio.month" toggleGroup="$radio" />
                 <RadioButton fx:id="radioRoot" text="%radio.root" toggleGroup="$radio" />
             </children>
+            <GridPane.margin>
+                <Insets left="10.0" />
+            </GridPane.margin>
         </HBox>
         <HBox spacing="10" GridPane.rowIndex="4">
             <children>
+                <Button fx:id="goBtn" text="%start" onAction="#process" />
+            </children>
+            <GridPane.margin>
+                <Insets left="10.0" />
+            </GridPane.margin>
+        </HBox>
+        <HBox spacing="10" GridPane.rowIndex="5">
+            <children>
                 <Text fx:id="messages" />
             </children>
+            <GridPane.margin>
+                <Insets left="10.0" />
+            </GridPane.margin>
         </HBox>
     </children>
     <columnConstraints>

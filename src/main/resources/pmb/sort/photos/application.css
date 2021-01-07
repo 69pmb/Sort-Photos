@@ -1,10 +1,10 @@
 .text-field.error {
-  -fx-text-box-border: red ;
-  -fx-focus-color: red ;
+  -fx-text-box-border: red;
+  -fx-focus-color: red;
 }
 
 .box {
-  -fx-border-width: 3.0px;
+  -fx-border-width: 2.5px;
   -fx-border-style: solid;
   -fx-border-color: #5a5b5c;
 }
