@@ -5,7 +5,7 @@
     <parent>
         <groupId>pmb</groupId>
         <artifactId>my-dependencies</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0</version>
     </parent>
 
     <artifactId>sort-photos</artifactId>
@@ -15,6 +15,7 @@
 
     <properties>
         <javafx.version>11.0.2</javafx.version>
+        <mainClass>pmb.sort.photos.Main</mainClass>
     </properties>
 
     <dependencies>
@@ -94,6 +95,13 @@
         </dependency>
     </dependencies>
 
+	<scm>
+		<url>https://github.com/69pmb/Sort-Photos/</url>
+		<connection>scm:git:ssh://git@github.com/69pmb/Sort-Photos.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/69pmb/Sort-Photos.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
     <build>
         <plugins>
             <plugin>
@@ -101,8 +109,48 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.5</version>
                 <configuration>
-                    <mainClass>pmb.sort.photos.Main</mainClass>
+                    <mainClass>${mainClass}</mainClass>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <transformers>
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${mainClass}</mainClass>
+                                    <manifestEntries>
+                                        <Multi-Release>true</Multi-Release>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>org.apache.logging.log4j:log4j-api</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.apache.logging.log4j:log4j-core</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
