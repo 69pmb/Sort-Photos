@@ -2,8 +2,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>C:\Utilisateurs\a756122\Downloads\sort-photos-0.0.1-SNAPSHOT-shaded.jar</jar>
-  <outfile>C:\Utilisateurs\a756122\Downloads\sort.exe</outfile>
+  <jar>C:\Users\Pierre-Marie\Downloads\sort-photos-0.1.0-shaded.jar</jar>
+  <outfile>C:\Users\Pierre-Marie\Documents\Dev\workspace\Sort-Photos\sort-photos.exe</outfile>
   <errTitle></errTitle>
   <cmdLine>--module-path &quot;${PATH_TO_FX}&quot; --add-modules javafx.controls,javafx.fxml</cmdLine>
   <chdir>.</chdir>
