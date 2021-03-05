@@ -119,7 +119,7 @@ class PictureTest {
             assertPretty("29/10/2020 18:01", actual[2]);
             assertPretty("07/02/2008 11:33", actual[3]);
             assertPretty("FinePixS1Pro", actual[4]);
-            assertPretty("91 KB", actual[5]);
+            assertPretty("84 KB", actual[5]);
         }
 
         @Test
@@ -137,7 +137,7 @@ class PictureTest {
             assertPretty("29/10/2020 18:01", actual[2]);
             assertPretty("Pas trouvé", actual[3]);
             assertPretty("Inconnu", actual[4]);
-            assertPretty("66 KB", actual[5]);
+            assertPretty("62 KB", actual[5]);
         }
 
         private void assertPretty(String expected, String actual) {
