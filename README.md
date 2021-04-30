@@ -1,3 +1,4 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=pmb:sort-photos&metric=alert_status)](https://sonarcloud.io/dashboard?id=pmb:sort-photos)
 # Sort-Photos
 This project is a Java program to sort photos by Year and then by Month and also to rename them with its taken time.
 
