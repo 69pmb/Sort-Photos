@@ -191,28 +191,29 @@ public class Controller
     }
 
     private void initFallbackValue() {
-        MyProperties.get(Property.FALL_BACK_CHOICE.getValue()).map(StringUtils::upperCase).map(Fallback::valueOf).ifPresent(choice -> {
-            switch (choice) {
-                case CREATE:
-                    fallbackCreate.setSelected(true);
-                    fallbackEdit.setSelected(false);
-                    fallbackPattern.setSelected(false);
-                    pattern.setDisable(true);
-                    break;
-                case EDIT:
-                    fallbackCreate.setSelected(false);
-                    fallbackEdit.setSelected(true);
-                    fallbackPattern.setSelected(false);
-                    pattern.setDisable(true);
-                    break;
-                case PATTERN:
-                    fallbackCreate.setSelected(false);
-                    fallbackEdit.setSelected(false);
-                    fallbackPattern.setSelected(true);
-                    pattern.setDisable(false);
-                    break;
-            }
-        });
+        MyProperties.get(Property.FALL_BACK_CHOICE.getValue()).map(StringUtils::upperCase).filter(Fallback::exist).map(Fallback::valueOf)
+                .ifPresent(choice -> {
+                    switch (choice) {
+                        case CREATE:
+                            fallbackCreate.setSelected(true);
+                            fallbackEdit.setSelected(false);
+                            fallbackPattern.setSelected(false);
+                            pattern.setDisable(true);
+                            break;
+                        case EDIT:
+                            fallbackCreate.setSelected(false);
+                            fallbackEdit.setSelected(true);
+                            fallbackPattern.setSelected(false);
+                            pattern.setDisable(true);
+                            break;
+                        case PATTERN:
+                            fallbackCreate.setSelected(false);
+                            fallbackEdit.setSelected(false);
+                            fallbackPattern.setSelected(true);
+                            pattern.setDisable(false);
+                            break;
+                    }
+                });
         fallbackPattern.setOnAction(e -> pattern.setDisable(!fallbackPattern.isSelected()));
         fallbackEdit.setOnAction(e -> pattern.setDisable(fallbackEdit.isSelected()));
         fallbackCreate.setOnAction(e -> pattern.setDisable(fallbackCreate.isSelected()));

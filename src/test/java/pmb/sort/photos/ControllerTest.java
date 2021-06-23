@@ -5,11 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.File;
@@ -60,6 +60,7 @@ class ControllerTest
         controller = new Controller();
         controller.radioRoot = new RadioButton();
         controller.radioYear = new RadioButton();
+        controller.messageProperties = new Text();
         controller.radioMonth = new RadioButton();
         controller.selectedDir = new TextField();
         controller.defaultDirectory = "";
@@ -92,8 +93,8 @@ class ControllerTest
                 assertAll(() -> assertTrue(controller.goBtn.isDisable()), () -> assertTrue(controller.saveDirBtn.isDisable()),
                         () -> assertTrue(controller.selectedDir.getStyleClass().contains(Constant.CSS_CLASS_ERROR)));
 
-                myProperties.verify(never(), () -> MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), TestUtils.WITH_EXIF.getParent()));
-                myProperties.verify(never(), MyProperties::save);
+                myProperties.verify(() -> MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), TestUtils.WITH_EXIF.getParent()), never());
+                myProperties.verify(MyProperties::save, never());
             }
         }
 
@@ -118,21 +119,32 @@ class ControllerTest
 
     @Test
     void init_properties() {
-        try (MockedStatic<MiscUtils> getValue = mockStatic(MiscUtils.class)) {
-            getValue.when(() -> MiscUtils.getDefaultValue(any(Property.class))).thenReturn("TEST").thenReturn("TEST").thenReturn("TEST")
-                    .thenReturn("false").thenReturn("true");
+        List<Property> list = List.of(Property.DATE_FORMAT, Property.PICTURE_EXTENSION, Property.VIDEO_EXTENSION, Property.FALL_BACK_PATTERN);
+        try (MockedStatic<MyProperties> myProperties = mockStatic(MyProperties.class)) {
+            try (MockedStatic<MiscUtils> getValue = mockStatic(MiscUtils.class)) {
+                getValue.when(() -> MiscUtils.getDefaultValue(Property.ENABLE_FOLDERS_ORGANIZATION)).thenReturn("false");
+                getValue.when(() -> MiscUtils.getDefaultValue(Property.OVERWRITE_IDENTICAL)).thenReturn("true");
+                list.forEach(p -> getValue.when(() -> MiscUtils.getDefaultValue(p)).thenReturn("TEST"));
+                myProperties.when(() -> MyProperties.get("fall_back_choice")).thenReturn(Optional.of("pattern"));
 
-            controller.initProperties();
+                controller.initProperties();
 
-            List.of(controller.dateFormat, controller.pictureExtension, controller.videoExtension).forEach(txt -> {
-                assertEquals("TEST", txt.getText());
-                assertFalse(txt.getStyleClass().contains(Constant.CSS_CLASS_ERROR));
-            });
-            assertFalse(controller.enableFoldersOrganization.isSelected());
-            assertTrue(controller.overwriteIdentical.isSelected());
-            List.of(controller.radioYear, controller.radioMonth, controller.radioRoot).forEach(radio -> assertTrue(radio.isDisabled()));
+                List.of(controller.dateFormat, controller.pictureExtension, controller.videoExtension, controller.pattern).forEach(txt -> {
+                    assertEquals("TEST", txt.getText());
+                    assertFalse(txt.getStyleClass().contains(Constant.CSS_CLASS_ERROR));
+                });
+                assertAll(() -> assertEquals("", controller.messageProperties.getText()),
+                        () -> assertFalse(controller.enableFoldersOrganization.isSelected()),
+                        () -> assertTrue(controller.overwriteIdentical.isSelected()), () -> assertFalse(controller.fallbackCreate.isSelected()),
+                        () -> assertFalse(controller.fallbackEdit.isSelected()), () -> assertTrue(controller.fallbackPattern.isSelected()),
+                        () -> assertFalse(controller.pattern.isDisable()));
+                List.of(controller.radioYear, controller.radioMonth, controller.radioRoot).forEach(radio -> assertTrue(radio.isDisabled()));
 
-            getValue.verify(times(5), () -> MiscUtils.getDefaultValue(any(Property.class)));
+                getValue.verify(() -> MiscUtils.getDefaultValue(Property.ENABLE_FOLDERS_ORGANIZATION));
+                getValue.verify(() -> MiscUtils.getDefaultValue(Property.OVERWRITE_IDENTICAL));
+                list.forEach(p -> getValue.verify(() -> MiscUtils.getDefaultValue(p)));
+                myProperties.verify(() -> MyProperties.get("fall_back_choice"));
+            }
         }
     }
 
@@ -151,10 +163,10 @@ class ControllerTest
             assertAll(() -> assertEquals(controller.defaultDirectory, controller.selectedDir.getText()),
                     () -> assertTrue(controller.goBtn.isDisable()), () -> assertTrue(controller.saveDirBtn.isDisable()),
                     () -> assertFalse(controller.radioYear.isSelected()), () -> assertFalse(controller.radioMonth.isSelected()),
-                    () -> assertFalse(controller.radioRoot.isSelected()));
+                    () -> assertTrue(controller.radioRoot.isSelected()));
 
             verify(controller).chooseDirectory(TestUtils.WITH_EXIF.getParentFile());
-            verify(controller).isValidSelectedDirectory(() -> {});
+            verify(controller).isValidSelectedDirectory(any());
         }
 
         @ParameterizedTest(name = "when {0} is selected expected year to be {1}, month {2} and root {3}")
@@ -163,7 +175,7 @@ class ControllerTest
             controller.selectedDir.setText(TestUtils.WITH_EXIF.getAbsolutePath());
             controller = spy(controller);
             File folder = TestUtils.GET_FILE.apply(selectedFile);
-            doReturn(folder).when(controller).chooseDirectory(TestUtils.WITH_EXIF.getParentFile());
+            doReturn(folder).when(controller).chooseDirectory(TestUtils.WITH_EXIF);
 
             controller.selectDirectory();
 
@@ -173,7 +185,7 @@ class ControllerTest
                     () -> assertEquals(isYear, controller.radioYear.isSelected()), () -> assertEquals(isMonth, controller.radioMonth.isSelected()),
                     () -> assertEquals(isRoot, controller.radioRoot.isSelected()));
 
-            verify(controller).chooseDirectory(TestUtils.WITH_EXIF.getParentFile());
+            verify(controller).chooseDirectory(TestUtils.WITH_EXIF);
             verify(controller, never()).isValidSelectedDirectory(() -> {});
         }
 
@@ -184,20 +196,22 @@ class ControllerTest
     void initialize(ArgumentsAccessor arguments) {
         controller = spy(controller);
         try (MockedStatic<MyProperties> myProperties = mockStatic(MyProperties.class)) {
-            myProperties.when(() -> MyProperties.get(any())).thenReturn(Optional.of(arguments.getString(0)));
+            doNothing().when(controller).initProperties();
+            myProperties.when(() -> MyProperties.get("default_working_dir")).thenReturn(Optional.ofNullable(arguments.getString(0)));
 
             controller.initialize(null, TestUtils.BUNDLE);
 
             assertAll(() -> assertThat(controller.selectedDir.getText()).isEqualTo(arguments.getString(1)),
                     () -> assertTrue(controller.radioRoot.isSelected()));
 
-            myProperties.verify(() -> MyProperties.get(any()));
+            myProperties.verify(() -> MyProperties.get("default_working_dir"));
+            myProperties.verify(() -> MyProperties.setConfigPath(MyConstant.CONFIGURATION_FILENAME));
+            verify(controller).initProperties();
         }
-        verify(controller).initProperties();
     }
 
     static Stream<String[]> workDirProvider() {
-        return Stream.of(new String[] { "Test", MyConstant.USER_DIRECTORY },
+        return Stream.of(new String[] { "Test", MyConstant.USER_DIRECTORY }, new String[] { null, MyConstant.USER_DIRECTORY },
                 new String[] { TestUtils.TEST_RESOURCE_DIR, TestUtils.TEST_RESOURCE_DIR });
     }
 
