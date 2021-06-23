@@ -13,7 +13,7 @@
     <name>Sort Photos</name>
 
     <properties>
-        <javafx.version>11.0.2</javafx.version>
+        <javafx.version>16</javafx.version>
         <mainClass>pmb.sort.photos.Main</mainClass>
     </properties>
 
