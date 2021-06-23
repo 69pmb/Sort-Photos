@@ -93,7 +93,7 @@ class ControllerTest
                         () -> assertTrue(controller.selectedDir.getStyleClass().contains(Constant.CSS_CLASS_ERROR)));
 
                 myProperties.verify(never(), () -> MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), TestUtils.WITH_EXIF.getParent()));
-                myProperties.verify(never(), () -> MyProperties.save());
+                myProperties.verify(never(), MyProperties::save);
             }
         }
 
@@ -110,7 +110,7 @@ class ControllerTest
                         () -> assertFalse(controller.radioYear.isSelected()));
 
                 myProperties.verify(() -> MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), TestUtils.WITH_EXIF.getParent()));
-                myProperties.verify(() -> MyProperties.save());
+                myProperties.verify(MyProperties::save);
             }
         }
 

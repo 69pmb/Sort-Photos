@@ -98,7 +98,8 @@ public class Controller
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         LOG.debug("Start initialize");
-        this.bundle = resources;
+        bundle = resources;
+        MyProperties.setConfigPath(MyConstant.CONFIGURATION_FILENAME);
         initProperties();
         defaultDirectory = MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists())
                 .orElse(MyConstant.USER_DIRECTORY);
@@ -174,7 +175,7 @@ public class Controller
 
     @FXML
     public void initProperties() {
-        LOG.debug("Start resetProperties");
+        LOG.debug("Start initProperties");
         messageProperties.setText("");
         textProperties = Map.of(Property.DATE_FORMAT, dateFormat, Property.PICTURE_EXTENSION, pictureExtension, Property.VIDEO_EXTENSION,
                 videoExtension, Property.FALL_BACK_PATTERN, pattern);
@@ -186,7 +187,7 @@ public class Controller
         boxProperties.forEach((prop, box) -> box.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(prop))));
         initFallbackValue();
         disableRadioButtons();
-        LOG.debug("End resetProperties");
+        LOG.debug("End initProperties");
     }
 
     private void initFallbackValue() {
