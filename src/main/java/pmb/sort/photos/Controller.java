@@ -95,6 +95,8 @@ public class Controller
     private Map<Property, TextField> textProperties;
     private Map<Property, CheckBox> boxProperties;
 
+    public Controller() {}
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         LOG.debug("Start initialize");
@@ -195,28 +197,26 @@ public class Controller
                 .ifPresent(choice -> {
                     switch (choice) {
                         case CREATE:
-                            fallbackCreate.setSelected(true);
-                            fallbackEdit.setSelected(false);
-                            fallbackPattern.setSelected(false);
-                            pattern.setDisable(true);
+                            setFallbackValues(true, false, false, true);
                             break;
                         case EDIT:
-                            fallbackCreate.setSelected(false);
-                            fallbackEdit.setSelected(true);
-                            fallbackPattern.setSelected(false);
-                            pattern.setDisable(true);
+                            setFallbackValues(false, true, false, true);
                             break;
                         case PATTERN:
-                            fallbackCreate.setSelected(false);
-                            fallbackEdit.setSelected(false);
-                            fallbackPattern.setSelected(true);
-                            pattern.setDisable(false);
+                            setFallbackValues(false, false, true, false);
                             break;
                     }
                 });
         fallbackPattern.setOnAction(e -> pattern.setDisable(!fallbackPattern.isSelected()));
         fallbackEdit.setOnAction(e -> pattern.setDisable(fallbackEdit.isSelected()));
         fallbackCreate.setOnAction(e -> pattern.setDisable(fallbackCreate.isSelected()));
+    }
+
+    private void setFallbackValues(boolean fallbackCreateValue, boolean fallbackEditValue, boolean fallbackPatternValue, boolean patternValue) {
+        fallbackCreate.setSelected(fallbackCreateValue);
+        fallbackEdit.setSelected(fallbackEditValue);
+        fallbackPattern.setSelected(fallbackPatternValue);
+        pattern.setDisable(patternValue);
     }
 
     private void disableRadioButtons() {

@@ -1,5 +1,8 @@
 package pmb.sort.photos.model;
 
+/**
+ * Property used for {@code config.properties} file, with {@link Property#value} as key.
+ */
 public enum Property {
 
     DEFAULT_WORKING_DIR("default_working_dir"),

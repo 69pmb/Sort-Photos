@@ -23,13 +23,16 @@ import pmb.sort.photos.model.Picture;
 import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.JavaFxUtils;
 
+/**
+ * Component asking the user how to process two similar pictures.
+ */
 public class DuplicateDialog
         extends Stage {
 
+    private static final Logger LOG = LogManager.getLogger(DuplicateDialog.class);
+
     private GridPane container;
     private ResourceBundle bundle;
-
-    private static final Logger LOG = LogManager.getLogger(DuplicateDialog.class);
 
     public DuplicateDialog(GridPane container, ResourceBundle bundle, Picture picture, String newPath, Picture existingPicture, String count) {
         LOG.debug("Start duplicateDialog");
@@ -96,7 +99,7 @@ public class DuplicateDialog
         }
     }
 
-    private void delete(Picture picture, Stage dialog) {
+    private static void delete(Picture picture, Stage dialog) {
         LOG.debug("Delete");
         try {
             dialog.close();
@@ -106,7 +109,7 @@ public class DuplicateDialog
         }
     }
 
-    private void overwrite(Picture picture, String newPath, Picture existingPicture, Stage dialog) {
+    private static void overwrite(Picture picture, String newPath, Picture existingPicture, Stage dialog) {
         LOG.debug("Overwrite");
         try {
             dialog.close();

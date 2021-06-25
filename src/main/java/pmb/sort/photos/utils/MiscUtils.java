@@ -27,6 +27,9 @@ import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyProperties;
 import pmb.sort.photos.model.Property;
 
+/**
+ * Various methods.
+ */
 public final class MiscUtils {
 
     private static final Logger LOG = LogManager.getLogger(MiscUtils.class);
@@ -64,8 +67,7 @@ public final class MiscUtils {
     /**
      * Checks if the given date format is valid.
      *
-     * @param format
-     *            the date format to validate
+     * @param format the date format to validate
      * @return if true the format is valid, false otherwise
      * @see SimpleDateFormat
      */
@@ -78,10 +80,22 @@ public final class MiscUtils {
         }
     }
 
+    /**
+     * Gets a property value with default empty string value.
+     *
+     * @param property to recover
+     * @return value stored in {@code config.properties} file
+     */
     public static String getDefaultValue(Property property) {
         return MyProperties.getOrDefault(property.getValue(), "");
     }
 
+    /**
+     * Recovers taken date time for a given file representing a picture.
+     *
+     * @param file a picture
+     * @return an optional date if no taken date is found or if the metadata can't be read
+     */
     public static Optional<Date> getTakenTime(File file) {
         Metadata metadata;
         try {
@@ -94,6 +108,12 @@ public final class MiscUtils {
         return Optional.empty();
     }
 
+    /**
+     * Recovers device model that took the given picture.
+     *
+     * @param file a picture
+     * @return an optional string if no model is found or if the metadata can't be read
+     */
     public static Optional<String> getModel(File file) {
         Metadata metadata;
         try {

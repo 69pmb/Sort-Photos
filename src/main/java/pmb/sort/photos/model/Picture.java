@@ -27,6 +27,7 @@ import pmb.sort.photos.utils.MiscUtils;
  */
 public class Picture {
 
+    private static final Function<Date, String> FORMAT = date -> DateFormat.getInstance().format(date);
     private String path;
     private String name;
     private String extension;
@@ -35,13 +36,11 @@ public class Picture {
     private Optional<Date> taken;
     private Date creation;
     private Date modified;
-    private static final Function<Date, String> FORMAT = date -> DateFormat.getInstance().format(date);
 
     /**
      * Constructor reading file attributes with {@link BasicFileAttributes} and metadata-extractor.
      *
-     * @param file
-     *            to convert
+     * @param file to convert
      * @see Files#readAttributes(Path, Class, java.nio.file.LinkOption...)
      */
     public Picture(File file) {
@@ -64,8 +63,7 @@ public class Picture {
     /**
      * Resumes picture informations.
      *
-     * @param bundle
-     *            translations
+     * @param bundle translations
      * @return a string with {@link MyConstant#NEW_LINE} separator
      */
     public String prettyPrint(ResourceBundle bundle) {
@@ -80,6 +78,11 @@ public class Picture {
         return sb.stream().collect(Collectors.joining(MyConstant.NEW_LINE));
     }
 
+    /**
+     * Converts {@link Picture#path} to {@link Path}.
+     *
+     * @return a path
+     */
     public Path toPath() {
         return Path.of(path);
     }
@@ -120,8 +123,8 @@ public class Picture {
         return taken;
     }
 
-    public void setTaken(Optional<Date> taken) {
-        this.taken = taken;
+    public void setTaken(Date taken) {
+        this.taken = Optional.ofNullable(taken);
     }
 
     public Date getCreation() {
@@ -144,8 +147,8 @@ public class Picture {
         return model;
     }
 
-    public void setModel(Optional<String> model) {
-        this.model = model;
+    public void setModel(String model) {
+        this.model = Optional.ofNullable(model);
     }
 
     @Override

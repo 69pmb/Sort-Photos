@@ -1,5 +1,8 @@
 package pmb.sort.photos.utils;
 
+/**
+ * Constant class for the application.
+ */
 public final class Constant {
 
     public static final String SUFFIX_SEPARATOR = "~";
