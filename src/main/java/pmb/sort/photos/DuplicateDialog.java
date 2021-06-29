@@ -34,6 +34,16 @@ public class DuplicateDialog
     private GridPane container;
     private ResourceBundle bundle;
 
+    /**
+     * Opens the dialog.
+     *
+     * @param container parent
+     * @param bundle i18n
+     * @param picture processing
+     * @param newPath
+     * @param existingPicture
+     * @param count
+     */
     public DuplicateDialog(GridPane container, ResourceBundle bundle, Picture picture, String newPath, Picture existingPicture, String count) {
         LOG.debug("Start duplicateDialog");
         this.container = container;

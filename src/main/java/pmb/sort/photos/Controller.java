@@ -8,7 +8,6 @@ import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -17,12 +16,9 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,7 +45,11 @@ import pmb.sort.photos.model.Picture;
 import pmb.sort.photos.model.Property;
 import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.MiscUtils;
+import pmb.sort.photos.utils.PropertiesUtils;
 
+/**
+ *
+ */
 public class Controller
         implements Initializable {
 
@@ -93,20 +93,20 @@ public class Controller
     protected TextField pattern;
     protected String defaultDirectory;
     private ResourceBundle bundle;
-    private Map<Property, TextField> textProperties;
-    private Map<Property, CheckBox> boxProperties;
+    private PropertiesUtils propertiesUtils;
 
-    public Controller() {}
+    public Controller() {
+        // empty
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         LOG.debug("Start initialize");
         bundle = resources;
-        MyProperties.setConfigPath(MyConstant.CONFIGURATION_FILENAME);
-        initProperties();
-        defaultDirectory = MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists())
-                .orElse(MyConstant.USER_DIRECTORY);
-        selectedDir.setText(defaultDirectory);
+        propertiesUtils = new PropertiesUtils(this,
+                Map.of(Property.DATE_FORMAT, dateFormat, Property.PICTURE_EXTENSION, pictureExtension, Property.VIDEO_EXTENSION, videoExtension,
+                        Property.FALL_BACK_PATTERN, pattern),
+                Map.of(Property.ENABLE_FOLDERS_ORGANIZATION, enableFoldersOrganization, Property.OVERWRITE_IDENTICAL, overwriteIdentical));
         selectedDir.setOnKeyReleased(e -> {
             messages.setText("");
             isValidSelectedDirectory(() -> {});
@@ -136,6 +136,9 @@ public class Controller
         }
     }
 
+    /**
+     *
+     */
     @FXML
     public void selectDirectory() {
         LOG.debug("Start selectDirectory");
@@ -163,6 +166,10 @@ public class Controller
         LOG.debug("End selectDirectory");
     }
 
+    /**
+     * @param inputDir
+     * @return
+     */
     public File chooseDirectory(File inputDir) {
         FileChooser dirChooser = new FileChooser();
         dirChooser.setTitle(bundle.getString("directory.chooser.title"));
@@ -170,121 +177,37 @@ public class Controller
         return dirChooser.showOpenDialog(container.getScene().getWindow());
     }
 
+    /**
+     *
+     */
     @FXML
     public void saveDefaultDir() {
-        LOG.debug("Start saveDefaultDir");
-        isValidSelectedDirectory(() -> {
-            MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), selectedDir.getText());
-            MyProperties.save();
-        });
-        LOG.debug("End saveDefaultDir");
+        propertiesUtils.saveDefaultDir();
     }
 
+    /**
+     *
+     */
     @FXML
     public void initProperties() {
-        LOG.debug("Start initProperties");
-        messageProperties.setText("");
-        textProperties = Map.of(Property.DATE_FORMAT, dateFormat, Property.PICTURE_EXTENSION, pictureExtension, Property.VIDEO_EXTENSION,
-                videoExtension, Property.FALL_BACK_PATTERN, pattern);
-        textProperties.forEach((prop, text) -> {
-            text.setText(MiscUtils.getDefaultValue(prop));
-            text.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
-        });
-        boxProperties = Map.of(Property.ENABLE_FOLDERS_ORGANIZATION, enableFoldersOrganization, Property.OVERWRITE_IDENTICAL, overwriteIdentical);
-        boxProperties.forEach((prop, box) -> box.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(prop))));
-        initFallbackValue();
-        disableRadioButtons();
-        LOG.debug("End initProperties");
+        propertiesUtils.initProperties();
     }
 
-    private void initFallbackValue() {
-        MyProperties.get(Property.FALL_BACK_CHOICE.getValue()).map(StringUtils::upperCase).filter(Fallback::exist).map(Fallback::valueOf)
-                .ifPresent(choice -> {
-                    switch (choice) {
-                        case CREATE:
-                            setFallbackValues(true, false, false, true);
-                            break;
-                        case EDIT:
-                            setFallbackValues(false, true, false, true);
-                            break;
-                        case PATTERN:
-                            setFallbackValues(false, false, true, false);
-                            break;
-                    }
-                });
-        fallbackPattern.setOnAction(e -> pattern.setDisable(!fallbackPattern.isSelected()));
-        fallbackEdit.setOnAction(e -> pattern.setDisable(fallbackEdit.isSelected()));
-        fallbackCreate.setOnAction(e -> pattern.setDisable(fallbackCreate.isSelected()));
-    }
-
-    private void setFallbackValues(boolean fallbackCreateValue, boolean fallbackEditValue, boolean fallbackPatternValue, boolean patternValue) {
-        fallbackCreate.setSelected(fallbackCreateValue);
-        fallbackEdit.setSelected(fallbackEditValue);
-        fallbackPattern.setSelected(fallbackPatternValue);
-        pattern.setDisable(patternValue);
-    }
-
-    private void disableRadioButtons() {
+    public void disableRadioButtons() {
         List.of(radioYear, radioMonth, radioRoot).forEach(radio -> radio.setDisable(!enableFoldersOrganization.isSelected()));
     }
 
+    /**
+     *
+     */
     @FXML
     public void saveProperties() {
-        LOG.debug("Start saveProperties");
-        List<String> warnings = inputsValidation();
-
-        if (!warnings.isEmpty()) {
-            LOG.debug("Incorrect inputs");
-            goBtn.setDisable(true);
-            messageProperties.setText(bundle.getString("warning") + StringUtils.join(warnings, ","));
-        } else {
-            LOG.debug("Save properties");
-            goBtn.setDisable(false);
-            messageProperties.setText(bundle.getString("properties.saved"));
-            textProperties.entrySet().stream().forEach(e -> MyProperties.set(e.getKey().getValue(), e.getValue().getText()));
-            boxProperties.entrySet().stream().forEach(e -> MyProperties.set(e.getKey().getValue(), Boolean.toString(e.getValue().isSelected())));
-            saveFallbackValue();
-            MyProperties.save();
-            detectFolder();
-        }
-        LOG.debug("End saveProperties");
+        propertiesUtils.saveProperties();
     }
 
-    private List<String> inputsValidation() {
-        List<TextField> blanks = textProperties.values().stream().filter(MiscUtils.isBlank).collect(Collectors.toList());
-        List<TextField> invalidDate = List.of(dateFormat, pattern).stream()
-                .filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
-        List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
-                .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
-        textProperties.values().stream().forEach(f -> f.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR));
-        Stream.of(blanks, invalidDate, invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
-                .forEach(f -> f.getStyleClass().add(Constant.CSS_CLASS_ERROR));
-
-        List<String> warnings = new ArrayList<>();
-        if (!blanks.isEmpty()) {
-            warnings.add(bundle.getString("warning.empty"));
-        }
-        if (!invalidDate.isEmpty()) {
-            warnings.add(bundle.getString("warning.date.format"));
-        }
-        if (!invalidExtensions.isEmpty()) {
-            warnings.add(bundle.getString("warning.extension"));
-        }
-        return warnings;
-    }
-
-    private void saveFallbackValue() {
-        String fallbackValue;
-        if (fallbackCreate.isSelected()) {
-            fallbackValue = Fallback.CREATE.toString();
-        } else if (fallbackEdit.isSelected()) {
-            fallbackValue = Fallback.EDIT.toString();
-        } else {
-            fallbackValue = Fallback.PATTERN.toString();
-        }
-        MyProperties.set(Property.FALL_BACK_CHOICE.getValue(), fallbackValue);
-    }
-
+    /**
+     *
+     */
     @FXML
     public void process() {
         LOG.debug("Start process");
@@ -320,7 +243,7 @@ public class Controller
                 String newName = sdf.format(date);
                 try {
                     renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
-                            new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), (i + 1) + "/" + size);
+                            new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), i + 1 + "/" + size);
                 } catch (IOException e) {
                     throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
                 }
@@ -368,8 +291,8 @@ public class Controller
         if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
                 StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
             LOG.info("New path {} for {}", newPath, picture.getPath());
-            if (!newFile.exists() || (overwriteIdentical.isSelected() && picture.equals(new Picture(newFile))
-                    && !Files.isSameFile(picture.toPath(), newFile.toPath()))) {
+            if (!newFile.exists() || overwriteIdentical.isSelected() && picture.equals(new Picture(newFile))
+                    && !Files.isSameFile(picture.toPath(), newFile.toPath())) {
                 Files.move(picture.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
                 new DuplicateDialog(container, bundle, picture, newPath, new Picture(newFile), count);
@@ -377,7 +300,10 @@ public class Controller
         }
     }
 
-    private void detectFolder() {
+    /**
+     * Determines if the selected directory is either a year folder, a month folder or a root folder (default).
+     */
+    public void detectFolder() {
         LOG.debug("Start detectFolder");
         File folder = new File(selectedDir.getText());
         if (MiscUtils.isValidRegex.test(folder.getName(), Constant.YEAR_REGEX)) {
@@ -388,6 +314,62 @@ public class Controller
             radioRoot.setSelected(true);
         }
         LOG.debug("End detectFolder");
+    }
+
+    public String getSelectedDir() {
+        return selectedDir.getText();
+    }
+
+    public void setSelectedDir(String text) {
+        selectedDir.setText(text);
+    }
+
+    public TextField getDateFormat() {
+        return dateFormat;
+    }
+
+    public TextField getPictureExtension() {
+        return pictureExtension;
+    }
+
+    public TextField getVideoExtension() {
+        return videoExtension;
+    }
+
+    public void setMessageProperties(String text) {
+        messageProperties.setText(text);
+    }
+
+    public void disableGoBtn(Boolean disable) {
+        goBtn.setDisable(disable);
+    }
+
+    public RadioButton getFallbackEdit() {
+        return fallbackEdit;
+    }
+
+    public RadioButton getFallbackCreate() {
+        return fallbackCreate;
+    }
+
+    public RadioButton getFallbackPattern() {
+        return fallbackPattern;
+    }
+
+    public TextField getPattern() {
+        return pattern;
+    }
+
+    public String getDefaultDirectory() {
+        return defaultDirectory;
+    }
+
+    public void setDefaultDirectory(String defaultDirectory) {
+        this.defaultDirectory = defaultDirectory;
+    }
+
+    public String getLabel(String key) {
+        return bundle.getString(key);
     }
 
 }
