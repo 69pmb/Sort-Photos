@@ -40,7 +40,19 @@
                             <children>
                                 <Label text="%properties.date.format" GridPane.columnIndex="1"
                                     GridPane.rowIndex="1" />
-                                <TextField fx:id="dateFormat" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                <HBox spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                    <children>
+                                        <TextField fx:id="dateFormat" minWidth="350" />
+                                        <Button onAction="#openLink">
+                                            <graphic>
+                                                <FontIcon iconLiteral="mdoal-help" iconSize="16" />
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="%properties.date.format.help" />
+                                            </tooltip>
+                                        </Button>
+                                    </children>
+                                </HBox>
 
                                 <Label text="%properties.picture.extension" GridPane.columnIndex="1"
                                     GridPane.rowIndex="2" />

@@ -43,6 +43,7 @@ import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyFileUtils;
 import pmb.my.starter.utils.MyProperties;
+import pmb.my.starter.utils.VariousUtils;
 import pmb.sort.photos.model.Fallback;
 import pmb.sort.photos.model.Picture;
 import pmb.sort.photos.model.Property;
@@ -115,6 +116,10 @@ public class Controller
         LOG.debug("End initialize");
     }
 
+    public void openLink() {
+        VariousUtils.openUrl("https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/text/SimpleDateFormat.html");
+    }
+    
     protected void isValidSelectedDirectory(Runnable action) {
         String dir = selectedDir.getText();
         File file = new File(dir);
