@@ -8,18 +8,18 @@ import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -80,7 +81,9 @@ public class Controller
     @FXML
     protected Button saveDirBtn;
     @FXML
-    protected Button goBtn;
+    protected Button processBtn;
+    @FXML
+    protected Button saveProperties;
     @FXML
     protected Text messages;
     @FXML
@@ -95,8 +98,11 @@ public class Controller
     private ResourceBundle bundle;
     private Map<Property, TextField> textProperties;
     private Map<Property, CheckBox> boxProperties;
+    private Map<String, String> warnings = new HashMap<>();
 
-    public Controller() {}
+    public Controller() {
+        // Empty
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -119,19 +125,19 @@ public class Controller
     public void openLink() {
         VariousUtils.openUrl("https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/text/SimpleDateFormat.html");
     }
-    
+
     protected void isValidSelectedDirectory(Runnable action) {
         String dir = selectedDir.getText();
         File file = new File(dir);
         if (StringUtils.isNotBlank(dir) && file.exists()) {
             selectedDir.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
-            goBtn.setDisable(false);
+            processBtn.setDisable(false);
             saveDirBtn.setDisable(false);
             detectFolder();
             action.run();
         } else {
             selectedDir.getStyleClass().add(Constant.CSS_CLASS_ERROR);
-            goBtn.setDisable(true);
+            processBtn.setDisable(true);
             saveDirBtn.setDisable(true);
         }
     }
@@ -153,11 +159,11 @@ public class Controller
                 dir = dir.getParentFile();
             }
             selectedDir.setText(dir.getAbsolutePath());
-            goBtn.setDisable(false);
+            processBtn.setDisable(false);
             saveDirBtn.setDisable(false);
             detectFolder();
         } else {
-            goBtn.setDisable(true);
+            processBtn.setDisable(true);
             saveDirBtn.setDisable(true);
         }
         LOG.debug("End selectDirectory");
@@ -186,15 +192,42 @@ public class Controller
         messageProperties.setText("");
         textProperties = Map.of(Property.DATE_FORMAT, dateFormat, Property.PICTURE_EXTENSION, pictureExtension, Property.VIDEO_EXTENSION,
                 videoExtension, Property.FALL_BACK_PATTERN, pattern);
-        textProperties.forEach((prop, text) -> {
-            text.setText(MiscUtils.getDefaultValue(prop));
-            text.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
-        });
+        List.of(pictureExtension, videoExtension).forEach(field -> addValidation(field, MiscUtils.isValidExtension, "extension"));
+        List.of(dateFormat, pattern).forEach(field -> addValidation(field, MiscUtils.isValidDateFormat, "date.format"));
+        textProperties.forEach((prop, text) -> text.setText(MiscUtils.getDefaultValue(prop)));
         boxProperties = Map.of(Property.ENABLE_FOLDERS_ORGANIZATION, enableFoldersOrganization, Property.OVERWRITE_IDENTICAL, overwriteIdentical);
         boxProperties.forEach((prop, box) -> box.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(prop))));
         initFallbackValue();
         disableRadioButtons();
         LOG.debug("End initProperties");
+    }
+
+    private void addValidation(TextField field, Predicate<TextField> validate, String key) {
+        field.textProperty().addListener(event -> {
+            boolean isBlank = MiscUtils.isBlank.test(field);
+            boolean isinValid = validate.negate().or(MiscUtils.isInvalidCharacters).test(field);
+            field.pseudoClassStateChanged(PseudoClass.getPseudoClass("error"), isBlank || isinValid);
+            udapteWarningMessage(field.getId(), !isBlank, "blank");
+            udapteWarningMessage(field.getId(), !isinValid, key);
+            if (!warnings.isEmpty()) {
+                processBtn.setDisable(true);
+                saveProperties.setDisable(true);
+                messageProperties.setText(bundle.getString("warning")
+                        + warnings.values().stream().distinct().map(k -> bundle.getString("warning." + k)).collect(Collectors.joining(", ")));
+            } else {
+                processBtn.setDisable(false);
+                saveProperties.setDisable(false);
+                messageProperties.setText("");
+            }
+        });
+    }
+
+    private void udapteWarningMessage(String key, boolean remove, String msg) {
+        if (remove) {
+            warnings.remove(key);
+        } else {
+            warnings.put(key, msg);
+        }
     }
 
     private void initFallbackValue() {
@@ -231,15 +264,8 @@ public class Controller
     @FXML
     public void saveProperties() {
         LOG.debug("Start saveProperties");
-        List<String> warnings = inputsValidation();
-
-        if (!warnings.isEmpty()) {
-            LOG.debug("Incorrect inputs");
-            goBtn.setDisable(true);
-            messageProperties.setText(bundle.getString("warning") + StringUtils.join(warnings, ","));
-        } else {
+        if (warnings.isEmpty()) {
             LOG.debug("Save properties");
-            goBtn.setDisable(false);
             messageProperties.setText(bundle.getString("properties.saved"));
             textProperties.entrySet().stream().forEach(e -> MyProperties.set(e.getKey().getValue(), e.getValue().getText()));
             boxProperties.entrySet().stream().forEach(e -> MyProperties.set(e.getKey().getValue(), Boolean.toString(e.getValue().isSelected())));
@@ -248,29 +274,6 @@ public class Controller
             detectFolder();
         }
         LOG.debug("End saveProperties");
-    }
-
-    private List<String> inputsValidation() {
-        List<TextField> blanks = textProperties.values().stream().filter(MiscUtils.isBlank).collect(Collectors.toList());
-        List<TextField> invalidDate = List.of(dateFormat, pattern).stream()
-                .filter(MiscUtils.isValidDateFormat.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
-        List<TextField> invalidExtensions = List.of(pictureExtension, videoExtension).stream()
-                .filter(MiscUtils.isValidExtension.negate().or(MiscUtils.isInvalidCharacters)).collect(Collectors.toList());
-        textProperties.values().stream().forEach(f -> f.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR));
-        Stream.of(blanks, invalidDate, invalidExtensions).flatMap(List::stream).collect(Collectors.toSet())
-                .forEach(f -> f.getStyleClass().add(Constant.CSS_CLASS_ERROR));
-
-        List<String> warnings = new ArrayList<>();
-        if (!blanks.isEmpty()) {
-            warnings.add(bundle.getString("warning.empty"));
-        }
-        if (!invalidDate.isEmpty()) {
-            warnings.add(bundle.getString("warning.date.format"));
-        }
-        if (!invalidExtensions.isEmpty()) {
-            warnings.add(bundle.getString("warning.extension"));
-        }
-        return warnings;
     }
 
     private void saveFallbackValue() {

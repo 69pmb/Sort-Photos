@@ -96,7 +96,7 @@
                                                 <FontIcon iconLiteral="mdrmz-refresh" iconSize="16" />
                                             </graphic>
                                         </Button>
-                                        <Button onAction="#saveProperties" text="%save">
+                                        <Button onAction="#saveProperties" text="%save" fx:id="saveProperties">
                                             <graphic>
                                                 <FontIcon iconLiteral="mdmz-save" iconSize="16" />
                                             </graphic>
@@ -141,7 +141,7 @@
         </HBox>
         <HBox spacing="10" GridPane.rowIndex="4">
             <children>
-                <Button fx:id="goBtn" text="%start" onAction="#process">
+                <Button fx:id="processBtn" text="%start" onAction="#process">
                     <graphic>
                         <FontIcon iconLiteral="mdomz-play_circle_outline" iconSize="16" />
                     </graphic>
