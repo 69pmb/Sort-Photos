@@ -66,7 +66,7 @@ class ControllerTest
         controller.defaultDirectory = "";
         controller.enableFoldersOrganization = new CheckBox();
         controller.messages = new Text();
-        controller.goBtn = new Button();
+        controller.processBtn = new Button();
         controller.saveDirBtn = new Button();
         controller.dateFormat = new TextField();
         controller.overwriteIdentical = new CheckBox();
@@ -90,7 +90,7 @@ class ControllerTest
 
                 controller.saveDefaultDir();
 
-                assertAll(() -> assertTrue(controller.goBtn.isDisable()), () -> assertTrue(controller.saveDirBtn.isDisable()),
+                assertAll(() -> assertTrue(controller.processBtn.isDisable()), () -> assertTrue(controller.saveDirBtn.isDisable()),
                         () -> assertTrue(controller.selectedDir.getStyleClass().contains(Constant.CSS_CLASS_ERROR)));
 
                 myProperties.verify(() -> MyProperties.set(Property.DEFAULT_WORKING_DIR.getValue(), TestUtils.WITH_EXIF.getParent()), never());
@@ -105,7 +105,7 @@ class ControllerTest
 
                 controller.saveDefaultDir();
 
-                assertAll(() -> assertFalse(controller.goBtn.isDisable()), () -> assertFalse(controller.saveDirBtn.isDisable()),
+                assertAll(() -> assertFalse(controller.processBtn.isDisable()), () -> assertFalse(controller.saveDirBtn.isDisable()),
                         () -> assertFalse(controller.selectedDir.getStyleClass().contains(Constant.CSS_CLASS_ERROR)),
                         () -> assertTrue(controller.radioRoot.isSelected()), () -> assertFalse(controller.radioMonth.isSelected()),
                         () -> assertFalse(controller.radioYear.isSelected()));
@@ -161,7 +161,7 @@ class ControllerTest
             controller.selectDirectory();
 
             assertAll(() -> assertEquals(controller.defaultDirectory, controller.selectedDir.getText()),
-                    () -> assertTrue(controller.goBtn.isDisable()), () -> assertTrue(controller.saveDirBtn.isDisable()),
+                    () -> assertTrue(controller.processBtn.isDisable()), () -> assertTrue(controller.saveDirBtn.isDisable()),
                     () -> assertFalse(controller.radioYear.isSelected()), () -> assertFalse(controller.radioMonth.isSelected()),
                     () -> assertTrue(controller.radioRoot.isSelected()));
 
@@ -181,7 +181,7 @@ class ControllerTest
 
             assertAll(
                     () -> assertEquals((folder.isDirectory() ? folder : folder.getParentFile()).getAbsolutePath(), controller.selectedDir.getText()),
-                    () -> assertFalse(controller.goBtn.isDisable()), () -> assertFalse(controller.saveDirBtn.isDisable()),
+                    () -> assertFalse(controller.processBtn.isDisable()), () -> assertFalse(controller.saveDirBtn.isDisable()),
                     () -> assertEquals(isYear, controller.radioYear.isSelected()), () -> assertEquals(isMonth, controller.radioMonth.isSelected()),
                     () -> assertEquals(isRoot, controller.radioRoot.isSelected()));
 
