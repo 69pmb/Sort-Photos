@@ -15,6 +15,8 @@
     <properties>
         <javafx.version>11.0.2</javafx.version>
         <mainClass>pmb.sort.photos.Main</mainClass>
+        <metadata-extractor.version>2.15.0</metadata-extractor.version>
+        <ikonli.version>12.2.0</ikonli.version>
     </properties>
 
     <dependencies>
@@ -36,7 +38,17 @@
         <dependency>
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
-            <version>2.15.0</version>
+            <version>${metadata-extractor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-material2-pack</artifactId>
+            <version>${ikonli.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-javafx</artifactId>
+            <version>${ikonli.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -94,12 +106,12 @@
         </dependency>
     </dependencies>
 
-	<scm>
-		<url>https://github.com/69pmb/Sort-Photos/</url>
-		<connection>scm:git:ssh://git@github.com/69pmb/Sort-Photos.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/69pmb/Sort-Photos.git</developerConnection>
-		<tag>HEAD</tag>
-	</scm>
+    <scm>
+        <url>https://github.com/69pmb/Sort-Photos/</url>
+        <connection>scm:git:ssh://git@github.com/69pmb/Sort-Photos.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/69pmb/Sort-Photos.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 
     <build>
         <plugins>
@@ -141,6 +153,18 @@
                                 </filter>
                                 <filter>
                                     <artifact>org.apache.logging.log4j:log4j-core</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.kordamp.ikonli:ikonli-javafx</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.kordamp.ikonli:ikonli-material2-pack</artifact>
                                     <includes>
                                         <include>**</include>
                                     </includes>

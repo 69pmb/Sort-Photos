@@ -7,6 +7,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
+<?import org.kordamp.ikonli.javafx.*?>
 
 <GridPane fx:id="container" alignment="center" hgap="10" prefHeight="640.0" prefWidth="1000.0" vgap="10" 
     xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pmb.sort.photos.Controller">
@@ -15,9 +16,17 @@
             <children>
                 <TextField fx:id="selectedDir" prefHeight="31.0" prefWidth="400">
                 </TextField>
-                <Button alignment="CENTER" mnemonicParsing="false" onAction="#selectDirectory" text="%browse" />
+                <Button alignment="CENTER" mnemonicParsing="false" onAction="#selectDirectory" text="%browse">
+                    <graphic>
+                        <FontIcon iconLiteral="mdral-folder_open" iconSize="16" />
+                    </graphic>
+                </Button>
                 <Button fx:id="saveDirBtn" alignment="CENTER" mnemonicParsing="false" onAction="#saveDefaultDir"
-                    text="%directory.chooser.save" />
+                    text="%directory.chooser.save">
+                    <graphic>
+                        <FontIcon iconLiteral="mdmz-save" iconSize="16" />
+                    </graphic>
+                </Button>
             </children>
             <GridPane.margin>
                 <Insets left="10.0" />
@@ -53,25 +62,33 @@
                                 <CheckBox fx:id="overwriteIdentical" GridPane.columnIndex="2"
                                     GridPane.rowIndex="5" />
 
-								<Label text="%properties.fallback" GridPane.columnIndex="1"
-                                    GridPane.rowIndex="6" />
-								<HBox spacing="10" GridPane.rowIndex="7" GridPane.columnIndex="1" GridPane.columnSpan="2">
-									<RadioButton fx:id="fallbackCreate" text="%properties.fallback.create">
-										<toggleGroup>
-											<ToggleGroup fx:id="fallback" />
-										</toggleGroup>
-									</RadioButton>
-									<RadioButton fx:id="fallbackEdit" text="%properties.fallback.edit"
-										toggleGroup="$fallback" />
-									<RadioButton fx:id="fallbackPattern" text="%properties.fallback.pattern"
-										toggleGroup="$fallback" />
-									<TextField fx:id="pattern" />
-								</HBox>
+                                <Label text="%properties.fallback" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                                <HBox spacing="10" GridPane.rowIndex="7" GridPane.columnIndex="1"
+                                    GridPane.columnSpan="2">
+                                    <RadioButton fx:id="fallbackCreate" text="%properties.fallback.create">
+                                        <toggleGroup>
+                                            <ToggleGroup fx:id="fallback" />
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <RadioButton fx:id="fallbackEdit" text="%properties.fallback.edit"
+                                        toggleGroup="$fallback" />
+                                    <RadioButton fx:id="fallbackPattern" text="%properties.fallback.pattern"
+                                        toggleGroup="$fallback" />
+                                    <TextField fx:id="pattern" />
+                                </HBox>
 
                                 <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="8">
                                     <children>
-                                        <Button onAction="#initProperties" text="%reset" />
-                                        <Button onAction="#saveProperties" text="%save" />
+                                        <Button onAction="#initProperties" text="%reset">
+                                            <graphic>
+                                                <FontIcon iconLiteral="mdrmz-refresh" iconSize="16" />
+                                            </graphic>
+                                        </Button>
+                                        <Button onAction="#saveProperties" text="%save">
+                                            <graphic>
+                                                <FontIcon iconLiteral="mdmz-save" iconSize="16" />
+                                            </graphic>
+                                        </Button>
                                     </children>
                                 </HBox>
                                 <Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
@@ -112,7 +129,11 @@
         </HBox>
         <HBox spacing="10" GridPane.rowIndex="4">
             <children>
-                <Button fx:id="goBtn" text="%start" onAction="#process" />
+                <Button fx:id="goBtn" text="%start" onAction="#process">
+                    <graphic>
+                        <FontIcon iconLiteral="mdomz-play_circle_outline" iconSize="16" />
+                    </graphic>
+                </Button>
             </children>
             <GridPane.margin>
                 <Insets left="10.0" />
