@@ -9,10 +9,10 @@
 <?import javafx.scene.text.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 
-<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="640.0" prefWidth="1000.0" vgap="10" 
+<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="700.0" prefWidth="1000.0" vgap="10"
     xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pmb.sort.photos.Controller">
     <children>
-        <HBox spacing="10" GridPane.rowIndex="1">
+        <HBox spacing="10" GridPane.rowIndex="2">
             <children>
                 <TextField fx:id="selectedDir" prefHeight="31.0" prefWidth="400">
                 </TextField>
@@ -32,7 +32,7 @@
                 <Insets left="10.0" />
             </GridPane.margin>
         </HBox>
-        <Accordion GridPane.rowIndex="2">
+        <Accordion GridPane.rowIndex="3">
             <panes>
                 <TitledPane animated="false" text="%properties.title">
                     <content>
@@ -125,7 +125,7 @@
                 <Insets left="10.0" />
             </GridPane.margin>
         </Accordion>
-        <HBox spacing="10" GridPane.rowIndex="3">
+        <HBox spacing="10" GridPane.rowIndex="4">
             <children>
                 <RadioButton fx:id="radioYear" text="%radio.year">
                     <toggleGroup>
@@ -139,7 +139,7 @@
                 <Insets left="10.0" />
             </GridPane.margin>
         </HBox>
-        <HBox spacing="10" GridPane.rowIndex="4">
+        <HBox spacing="10" GridPane.rowIndex="5">
             <children>
                 <Button fx:id="processBtn" text="%start" onAction="#process">
                     <graphic>
@@ -151,7 +151,7 @@
                 <Insets left="10.0" />
             </GridPane.margin>
         </HBox>
-        <HBox spacing="10" GridPane.rowIndex="5">
+        <HBox spacing="10" GridPane.rowIndex="6">
             <children>
                 <Text fx:id="messages" />
             </children>

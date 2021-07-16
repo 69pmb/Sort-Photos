@@ -3,10 +3,14 @@ package pmb.sort.photos.utils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -17,6 +21,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import pmb.my.starter.exception.MinorException;
+import pmb.sort.photos.Main;
 
 /**
  * Toolbox for JavaFx component.
@@ -31,8 +36,8 @@ public final class JavaFxUtils {
      * Displays a picture.
      *
      * @param absolutePath picture path
-     * @param styleClass   css class of the component
-     * @param width        of the picture
+     * @param styleClass css class of the component
+     * @param width of the picture
      * @return a component holding the picture
      */
     public static BorderPane displayPicture(String absolutePath, String styleClass, Integer width) {
@@ -54,7 +59,7 @@ public final class JavaFxUtils {
      * Builds a button.
      *
      * @param parent component
-     * @param label  of the button
+     * @param label of the button
      * @param action when clicked
      * @return the built button
      */
@@ -69,7 +74,7 @@ public final class JavaFxUtils {
     /**
      * Builds a {@link ScrollPane} with the given {@link Pane}.
      *
-     * @param pane	child pane
+     * @param pane child pane
      * @param prefHeight pref scroll height
      * @param maxHeight max scroll height
      */
@@ -84,7 +89,7 @@ public final class JavaFxUtils {
     /**
      * Builds a text component.
      *
-     * @param str           label
+     * @param str label
      * @param wrappingWidth width
      * @return the built text
      */
@@ -93,6 +98,21 @@ public final class JavaFxUtils {
         text.setWrappingWidth(wrappingWidth);
         text.setTextAlignment(TextAlignment.JUSTIFY);
         return text;
+    }
+
+    /**
+     * Loads an object from a FXML document for a given language.
+     *
+     * @param filePath FXML file path to load
+     * @param locale of the wanted language
+     *
+     * @return loaded object
+     * @throws IOException if an error occurs during loading
+     * @see {@link FXMLLoader#load(java.net.URL, ResourceBundle)}
+     */
+    public static Parent load(String filePath, Locale locale) throws IOException {
+        ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
+        return FXMLLoader.load(Main.class.getResource(filePath), bundle);
     }
 
 }

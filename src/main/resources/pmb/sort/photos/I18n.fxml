@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.shape.*?>
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<HBox fx:id="i18nContainer" spacing="10" GridPane.rowIndex="1" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="pmb.sort.photos.I18n">
+    <children>
+        <Label text="%properties.language" />
+        <ComboBox fx:id="langBox" onAction="#switchLang" />
+    </children>
+    <GridPane.margin>
+        <Insets left="10.0" />
+    </GridPane.margin>
+</HBox>

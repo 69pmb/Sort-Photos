@@ -1,5 +1,8 @@
 package pmb.sort.photos.utils;
 
+import java.util.List;
+import java.util.Locale;
+
 /**
  * Constant class for the application.
  */
@@ -15,6 +18,7 @@ public final class Constant {
     public static final String MONTH_REGEX = "^((0\\d)|(1[0-2]))\\.(19|20)\\d{2}$";
     public static final String YEAR_REGEX = "^(19|20)\\d{2}$";
     public static final String REGEX_EXTENSION = "^\\w+(" + EXTENSION_SEPARATOR + "\\w+)*$";
+    public static final List<Locale> AVAILABLE_LANGS = List.of(Locale.FRENCH, Locale.ENGLISH);
 
     private Constant() {
         throw new AssertionError("Must not be used");
