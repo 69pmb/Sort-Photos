@@ -1,4 +1,4 @@
-package pmb.sort.photos;
+package pmb.sort.photos.controller;
 
 import java.io.IOException;
 import java.net.URL;
@@ -20,17 +20,17 @@ import javafx.util.StringConverter;
 import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.JavaFxUtils;
 
-public class I18n
+public class I18nController
         implements Initializable {
 
-    private static final Logger LOG = LogManager.getLogger(I18n.class);
+    private static final Logger LOG = LogManager.getLogger(I18nController.class);
 
     @FXML
     protected HBox i18nContainer;
     @FXML
     protected ComboBox<Locale> langBox;
 
-    public I18n() {
+    public I18nController() {
         // Empty
     }
 

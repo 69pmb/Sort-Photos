@@ -40,6 +40,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyProperties;
+import pmb.sort.photos.controller.MainController;
 import pmb.sort.photos.model.Property;
 import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.MiscUtils;
@@ -48,7 +49,7 @@ import pmb.sort.photos.utils.MiscUtils;
 class ControllerTest
         implements WithAssertions {
 
-    Controller controller;
+    MainController controller;
 
     @BeforeAll
     static void start() {
@@ -57,7 +58,7 @@ class ControllerTest
 
     @BeforeEach
     void setup() {
-        controller = new Controller();
+        controller = new MainController();
         controller.radioRoot = new RadioButton();
         controller.radioYear = new RadioButton();
         controller.messageProperties = new Text();

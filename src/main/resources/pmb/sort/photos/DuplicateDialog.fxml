@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.shape.*?>
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
+
+<ScrollPane fx:id="dialogContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="pmb.sort.photos.controller.DuplicateDialogController" prefHeight="500" fitToWidth="true"
+    fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+    <content>
+        <VBox spacing="10">
+            <children>
+                <GridPane GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
+                    <children>
+                        <BorderPane GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <styleClass>box</styleClass>
+                            <children>
+                                <ImageView fx:id="viewer" preserveRatio="true" fitWidth="600" />
+                            </children>
+                        </BorderPane>
+                        <BorderPane GridPane.columnIndex="2" GridPane.rowIndex="1" styleClass="box">
+                            <children>
+                                <ImageView fx:id="existingViewer" preserveRatio="true" fitWidth="600" />
+                            </children>
+                        </BorderPane>
+                        <Text fx:id="detail" wrappingWidth="400" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                            textAlignment="JUSTIFY" />
+                        <Text fx:id="existingDetail" wrappingWidth="400" GridPane.columnIndex="2"
+                            GridPane.rowIndex="2" textAlignment="JUSTIFY" />
+                    </children>
+                </GridPane>
+                <HBox spacing="10">
+                    <children>
+                        <Text fx:id="message" />
+                        <Button alignment="center" text="%duplicate.button.cancel" onAction="#cancel" />
+                        <Button alignment="center" text="%duplicate.button.overwrite" onAction="#overwrite" />
+                        <Button alignment="center" text="%duplicate.button.rename" onAction="#renameWithSuffix" />
+                        <Button alignment="center" text="%duplicate.button.delete" onAction="#delete" />
+                    </children>
+                    <GridPane.margin>
+                        <Insets left="10.0" />
+                    </GridPane.margin>
+                </HBox>
+            </children>
+        </VBox>
+    </content>
+
+    <stylesheets>
+        <URL value="@application.css" />
+    </stylesheets>
+</ScrollPane>

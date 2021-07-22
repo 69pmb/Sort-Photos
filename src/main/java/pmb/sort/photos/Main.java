@@ -11,7 +11,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.JavaFxUtils;
 
 public class Main
@@ -27,7 +26,6 @@ public class Main
         Parent langBox = JavaFxUtils.load("I18n.fxml", locale);
         root.getChildren().add(0, langBox);
         Scene scene = new Scene(root, 750, 500);
-        scene.getStylesheets().add(Main.class.getResource(Constant.CSS_FILE).toExternalForm());
         stage.setScene(scene);
         stage.show();
         stage.setResizable(false);

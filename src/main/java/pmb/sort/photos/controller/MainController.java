@@ -1,4 +1,4 @@
-package pmb.sort.photos;
+package pmb.sort.photos.controller;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +29,7 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -36,6 +37,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
@@ -49,12 +51,13 @@ import pmb.sort.photos.model.Fallback;
 import pmb.sort.photos.model.Picture;
 import pmb.sort.photos.model.Property;
 import pmb.sort.photos.utils.Constant;
+import pmb.sort.photos.utils.JavaFxUtils;
 import pmb.sort.photos.utils.MiscUtils;
 
-public class Controller
+public class MainController
         implements Initializable {
 
-    private static final Logger LOG = LogManager.getLogger(Controller.class);
+    private static final Logger LOG = LogManager.getLogger(MainController.class);
 
     @FXML
     protected GridPane container;
@@ -94,13 +97,15 @@ public class Controller
     protected RadioButton fallbackPattern;
     @FXML
     protected TextField pattern;
+    @FXML
+    protected ScrollPane duplicateDialog;
     protected String defaultDirectory;
     private ResourceBundle bundle;
     private Map<Property, TextField> textProperties;
     private Map<Property, CheckBox> boxProperties;
     private Map<String, String> warnings = new HashMap<>();
 
-    public Controller() {
+    public MainController() {
         // Empty
     }
 
@@ -323,7 +328,7 @@ public class Controller
                 String newName = sdf.format(date);
                 try {
                     renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
-                            new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), (i + 1) + "/" + size);
+                            new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), i + 1 + "/" + size);
                 } catch (IOException e) {
                     throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
                 }
@@ -371,11 +376,14 @@ public class Controller
         if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
                 StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
             LOG.info("New path {} for {}", newPath, picture.getPath());
-            if (!newFile.exists() || (overwriteIdentical.isSelected() && picture.equals(new Picture(newFile))
-                    && !Files.isSameFile(picture.toPath(), newFile.toPath()))) {
+            if (!newFile.exists() || overwriteIdentical.isSelected() && picture.equals(new Picture(newFile))
+                    && !Files.isSameFile(picture.toPath(), newFile.toPath())) {
                 Files.move(picture.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
-                new DuplicateDialog(container, bundle, picture, newPath, new Picture(newFile), count);
+                FXMLLoader loader = JavaFxUtils.loader("DuplicateDialog.fxml", bundle.getLocale());
+                loader.load();
+                loader.<DuplicateDialogController> getController().show(container.getScene().getWindow(), bundle, picture, newPath,
+                        new Picture(newFile), count);
             }
         }
     }

@@ -9,8 +9,9 @@
 <?import javafx.scene.text.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 
-<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="700.0" prefWidth="1000.0" vgap="10"
-    xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pmb.sort.photos.Controller">
+<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="720.0" prefWidth="1000.0" vgap="10"
+    xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="pmb.sort.photos.controller.MainController">
     <children>
         <HBox spacing="10" GridPane.rowIndex="2">
             <children>
@@ -170,4 +171,8 @@
         <RowConstraints />
         <RowConstraints />
     </rowConstraints>
+
+    <stylesheets>
+        <URL value="@application.css" />
+    </stylesheets>
 </GridPane>

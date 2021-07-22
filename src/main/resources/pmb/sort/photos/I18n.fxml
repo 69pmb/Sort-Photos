@@ -9,7 +9,7 @@
 <?import javafx.scene.text.*?>
 
 <HBox fx:id="i18nContainer" spacing="10" GridPane.rowIndex="1" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-    fx:controller="pmb.sort.photos.I18n">
+    fx:controller="pmb.sort.photos.controller.I18nController">
     <children>
         <Label text="%properties.language" />
         <ComboBox fx:id="langBox" onAction="#switchLang" />

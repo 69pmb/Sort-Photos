@@ -111,8 +111,21 @@ public final class JavaFxUtils {
      * @see {@link FXMLLoader#load(java.net.URL, ResourceBundle)}
      */
     public static Parent load(String filePath, Locale locale) throws IOException {
+        return loader(filePath, locale).load();
+    }
+
+    /**
+     * Build loader object from a FXML document for a given language.
+     *
+     * @param filePath FXML file path to load
+     * @param locale of the wanted language
+     *
+     * @return loader object
+     * @see {@link FXMLLoader#FXMLLoader(java.net.URL, ResourceBundle)
+     */
+    public static FXMLLoader loader(String filePath, Locale locale) {
         ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
-        return FXMLLoader.load(Main.class.getResource(filePath), bundle);
+        return new FXMLLoader(Main.class.getResource(filePath), bundle);
     }
 
 }
