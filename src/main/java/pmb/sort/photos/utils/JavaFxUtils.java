@@ -10,7 +10,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -110,8 +109,8 @@ public final class JavaFxUtils {
      * @throws IOException if an error occurs during loading
      * @see {@link FXMLLoader#load(java.net.URL, ResourceBundle)}
      */
-    public static Parent load(String filePath, Locale locale) throws IOException {
-        return loader(filePath, locale).load();
+    public static <T> T load(String filePath, Locale locale) throws IOException {
+        return loader(filePath, locale).<T> load();
     }
 
     /**

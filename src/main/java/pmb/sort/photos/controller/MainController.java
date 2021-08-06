@@ -31,6 +31,7 @@ import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -42,6 +43,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyFileUtils;
@@ -97,8 +99,6 @@ public class MainController
     protected RadioButton fallbackPattern;
     @FXML
     protected TextField pattern;
-    @FXML
-    protected ScrollPane duplicateDialog;
     protected String defaultDirectory;
     private ResourceBundle bundle;
     private Map<Property, TextField> textProperties;
@@ -380,12 +380,20 @@ public class MainController
                     && !Files.isSameFile(picture.toPath(), newFile.toPath())) {
                 Files.move(picture.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
-                FXMLLoader loader = JavaFxUtils.loader("DuplicateDialog.fxml", bundle.getLocale());
-                loader.load();
-                loader.<DuplicateDialogController> getController().show(container.getScene().getWindow(), bundle, picture, newPath,
-                        new Picture(newFile), count);
+                showDuplicateDialog(newPath, count, picture, new Picture(newFile));
             }
         }
+    }
+
+    public void showDuplicateDialog(String newPath, String count, Picture picture, Picture existingPicture) throws IOException {
+        FXMLLoader loader = JavaFxUtils.loader("DuplicateDialog.fxml", bundle.getLocale());
+        ScrollPane load = loader.load();
+        DuplicateDialogController duplicateDialogController = loader.getController();
+        Scene scene = new Scene(load);
+        duplicateDialogController.setDialog(new Stage());
+        duplicateDialogController.getDialog().setScene(scene);
+        duplicateDialogController.show(container.getScene().getWindow(), newPath, count, picture, existingPicture);
+        LOG.debug("End duplicateDialog");
     }
 
     private void detectFolder() {

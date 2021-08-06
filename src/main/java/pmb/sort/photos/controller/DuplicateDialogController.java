@@ -2,6 +2,7 @@ package pmb.sort.photos.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ResourceBundle;
@@ -11,7 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
+import javafx.fxml.Initializable;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -27,7 +28,8 @@ import pmb.sort.photos.utils.Constant;
 /**
  * Component asking the user how to process two similar pictures.
  */
-public class DuplicateDialogController {
+public class DuplicateDialogController
+        implements Initializable {
 
     @FXML
     protected ImageView viewer;
@@ -49,24 +51,24 @@ public class DuplicateDialogController {
 
     private static final Logger LOG = LogManager.getLogger(DuplicateDialogController.class);
 
-    public void show(Window owner, ResourceBundle bundle, Picture picture, String newPath, Picture existingPicture, String count) {
+    @Override
+    public void initialize(URL arg0, ResourceBundle bundle) {}
+
+    public void show(Window owner, String newPath, String count, Picture picture, Picture existingPicture) {
         LOG.debug("Start duplicateDialog");
         this.picture = picture;
         this.newPath = newPath;
         this.existingPicture = existingPicture;
+        viewer.setImage(new Image(Constant.FILE_PROTOCOL + picture.getPath()));
 
-        dialog = new Stage();
+        // existingViewerUrl = Constant.FILE_PROTOCOL + existingPicture.getPath();
+        // detail.setText(picture.prettyPrint(bundle));
+        // existingDetail.setText(existingPicture.prettyPrint(bundle));
+        // message.setText(bundle.getString(picture.equals(existingPicture) ? "duplicate.warning.equals" : "duplicate.warning"));
+
         dialog.initOwner(owner);
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle(count);
-        viewer.setImage(new Image(Constant.FILE_PROTOCOL + picture.getPath()));
-        existingViewer.setImage(new Image(Constant.FILE_PROTOCOL + existingPicture.getPath()));
-        detail.setText(picture.prettyPrint(bundle));
-        existingDetail.setText(existingPicture.prettyPrint(bundle));
-        message.setText(bundle.getString(picture.equals(existingPicture) ? "duplicate.warning.equals" : "duplicate.warning"));
-
-        Scene scene = new Scene(dialogContainer);
-        dialog.setScene(scene);
         dialog.showAndWait();
         LOG.debug("End duplicateDialog");
     }
@@ -123,6 +125,14 @@ public class DuplicateDialogController {
         } catch (IOException e1) {
             throw new MinorException("Error moving file " + picture.getPath() + " to " + newPath, e1);
         }
+    }
+
+    public Stage getDialog() {
+        return dialog;
+    }
+
+    public void setDialog(Stage dialog) {
+        this.dialog = dialog;
     }
 
 }
