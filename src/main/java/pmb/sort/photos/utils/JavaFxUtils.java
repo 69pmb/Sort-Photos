@@ -1,8 +1,6 @@
 package pmb.sort.photos.utils;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -20,7 +18,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import pmb.my.starter.exception.MinorException;
 import pmb.sort.photos.Main;
 
 /**
@@ -37,22 +34,17 @@ public final class JavaFxUtils {
      *
      * @param absolutePath picture path
      * @param styleClass css class of the component
-     * @param width of the picture
      * @return a component holding the picture
      */
-    public static BorderPane displayPicture(String absolutePath, String styleClass, Integer width) {
-        ImageView imageView = new ImageView();
-        BorderPane imageViewWrapper = new BorderPane(imageView);
-        try (InputStream stream = new FileInputStream(absolutePath)) {
-            Image image = new Image(stream);
-            imageView.setImage(image);
-            imageView.setFitWidth(width);
-            imageView.setPreserveRatio(true);
-            imageViewWrapper.getStyleClass().add(styleClass);
-        } catch (IOException e) {
-            throw new MinorException("Error when displaying picture " + absolutePath, e);
-        }
-        return imageViewWrapper;
+    public static BorderPane displayPicture(String absolutePath, String styleClass) {
+        ImageView image = new ImageView();
+        BorderPane imageWrapper = new BorderPane(image);
+        image.setImage(new Image(Constant.FILE_PROTOCOL + absolutePath));
+        image.setFitWidth(400);
+        image.setPreserveRatio(true);
+        imageWrapper.getStyleClass().add(styleClass);
+        imageWrapper.setPrefWidth(400);
+        return imageWrapper;
     }
 
     /**

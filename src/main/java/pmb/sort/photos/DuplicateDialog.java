@@ -47,8 +47,8 @@ public class DuplicateDialog
         GridPane gridPane = new GridPane();
         JavaFxUtils.buildScrollPane(gridPane, 500, 700);
         gridPane.setHgap(10);
-        gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), Constant.CSS_CLASS_BOX, 600), 1, 1);
-        gridPane.add(JavaFxUtils.displayPicture(existingPicture.getPath(), Constant.CSS_CLASS_BOX, 600), 2, 1);
+        gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), Constant.CSS_CLASS_BOX), 1, 1);
+        gridPane.add(JavaFxUtils.displayPicture(existingPicture.getPath(), Constant.CSS_CLASS_BOX), 2, 1);
         gridPane.add(JavaFxUtils.buildText(picture.prettyPrint(bundle), 400), 1, 2);
         gridPane.add(JavaFxUtils.buildText(existingPicture.prettyPrint(bundle), 400), 2, 2);
 
