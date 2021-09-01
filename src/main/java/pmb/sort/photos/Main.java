@@ -26,7 +26,7 @@ public class Main
         GridPane root = (GridPane) JavaFxUtils.load("Screen.fxml", locale);
         Parent langBox = JavaFxUtils.load("I18n.fxml", locale);
         root.getChildren().add(0, langBox);
-        Scene scene = new Scene(root, 750, 500);
+        Scene scene = new Scene(root, 750, 550);
         scene.getStylesheets().add(Main.class.getResource(Constant.CSS_FILE).toExternalForm());
         stage.setScene(scene);
         stage.show();

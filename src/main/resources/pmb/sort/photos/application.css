@@ -7,6 +7,11 @@
   -fx-background-color: derive(red, 99.0%);
 }
 
+.success {
+  -fx-font-size: 24px;
+  -fx-line-height: 1.25;
+}
+
 .box {
   -fx-border-width: 2.5px;
   -fx-border-style: solid;

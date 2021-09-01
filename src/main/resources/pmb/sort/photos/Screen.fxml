@@ -153,7 +153,7 @@
         </HBox>
         <HBox spacing="10" GridPane.rowIndex="6">
             <children>
-                <Text fx:id="messages" />
+                <Text fx:id="messages" styleClass="success" />
             </children>
             <GridPane.margin>
                 <Insets left="10.0" />
