@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -38,6 +37,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import pmb.my.starter.exception.MinorException;
@@ -297,29 +297,36 @@ public class Controller
                 StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
         List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
         int size = files.size();
-        boolean alertShown = false;
-        AtomicBoolean useFallback = new AtomicBoolean(false);
-        String message;
-        Function<Picture, Date> fallbackDate;
+        String key;
+        Function<Picture, Date> getFallbackDate;
         if (fallbackCreate.isSelected()) {
-            message = bundle.getString("alert.create");
-            fallbackDate = Picture::getCreation;
+            key = "alert.create";
+            getFallbackDate = Picture::getCreation;
         } else if (fallbackEdit.isSelected()) {
-            message = bundle.getString("alert.edit");
-            fallbackDate = Picture::getModified;
+            key = "alert.edit";
+            getFallbackDate = Picture::getModified;
         } else {
-            message = MessageFormat.format(bundle.getString("alert.pattern"), pattern.getText());
-            fallbackDate = picture -> {
+            key = "alert.pattern";
+            getFallbackDate = picture -> {
                 try {
                     return patternSdf.parse(picture.getName());
                 } catch (ParseException e) {
-                    throw new MinorException("Error when parsing: " + picture.getName() + " with pattern: " + pattern.getText());
+                    LOG.error("Error when parsing: {} with pattern: {}", picture.getName(), pattern.getText());
+                    return null;
                 }
             };
         }
         IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
             Picture picture = new Picture(files.get(i));
-            picture.getTaken().or(() -> processNoTakenDate(alertShown, useFallback, picture, message, fallbackDate)).ifPresent(date -> {
+            picture.getTaken().or(() -> {
+                Date fallbackDate = getFallbackDate.apply(picture);
+                if (fallbackDate == null) {
+                    new Alert(AlertType.WARNING, MessageFormat.format(bundle.getString("alert.fail"), picture.getName())).showAndWait();
+                    return Optional.empty();
+                } else {
+                    return processNoTakenDate(picture, MessageFormat.format(bundle.getString(key), fallbackDate), fallbackDate);
+                }
+            }).ifPresent(date -> {
                 String newName = sdf.format(date);
                 try {
                     renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
@@ -333,16 +340,16 @@ public class Controller
         LOG.debug("End process");
     }
 
-    private Optional<Date> processNoTakenDate(boolean alertShown, AtomicBoolean useFallback, Picture picture, String message,
-            Function<Picture, Date> fallbackDate) {
+    private Optional<Date> processNoTakenDate(Picture picture, String message, Date fallbackDate) {
         LOG.warn("No taken date for picture: {}", picture.getPath());
-        if (!alertShown) {
-            useFallback.set(new Alert(AlertType.CONFIRMATION,
-                    MessageFormat.format(bundle.getString("alert.message"), picture.getName()) + MyConstant.NEW_LINE + message, ButtonType.YES,
-                    ButtonType.NO).showAndWait().map(response -> response == ButtonType.YES).orElse(false));
-        }
-        if (useFallback.get()) {
-            return Optional.of(fallbackDate.apply(picture));
+        Alert alert = new Alert(AlertType.CONFIRMATION,
+                MessageFormat.format(bundle.getString("alert.message"), StringUtils.abbreviate(picture.getName(), 40)) + MyConstant.NEW_LINE
+                        + message,
+                ButtonType.YES, ButtonType.NO);
+        alert.setResizable(true);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        if (alert.showAndWait().map(response -> response == ButtonType.YES).orElse(false)) {
+            return Optional.ofNullable(fallbackDate);
         } else {
             LOG.info("Picture is ignored");
             return Optional.empty();
