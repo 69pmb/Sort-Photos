@@ -37,7 +37,7 @@ class JavaFxUtilsTest {
 
         @Test
         void ok() {
-            BorderPane actual = JavaFxUtils.displayPicture(TestUtils.WITH_EXIF.getAbsolutePath(), "my_css");
+            BorderPane actual = JavaFxUtils.displayPicture(TestUtils.WITH_EXIF.getAbsolutePath(), "my_css", "", "");
 
             ImageView image = (ImageView) actual.getCenter();
 
@@ -48,7 +48,7 @@ class JavaFxUtilsTest {
 
         @Test
         void ko() {
-            assertThrows(MinorException.class, () -> JavaFxUtils.displayPicture("my\\failed\\test", "my_css"));
+            assertThrows(MinorException.class, () -> JavaFxUtils.displayPicture("my\\failed\\test", "my_css", "", ""));
         }
 
     }

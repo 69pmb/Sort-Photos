@@ -10,6 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.image.Image;
@@ -18,6 +19,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.transform.Scale;
+import javafx.stage.Screen;
 import pmb.sort.photos.Main;
 
 /**
@@ -29,21 +32,51 @@ public final class JavaFxUtils {
         throw new AssertionError("Must not be used");
     }
 
+    private static final Double PICTURE_WIDTH = 500D;
+
     /**
      * Displays a picture.
      *
      * @param absolutePath picture path
      * @param styleClass css class of the component
+     * @param rotateBtnLabel label of the rotation button
+     * @param imageTitle title above the image
      * @return a component holding the picture
      */
-    public static BorderPane displayPicture(String absolutePath, String styleClass) {
+    public static BorderPane displayPicture(String absolutePath, String styleClass, String rotateBtnLabel, String imageTitle) {
+        Double pictureHeight = Screen.getPrimary().getBounds().getHeight() - 300;
         ImageView image = new ImageView();
-        BorderPane imageWrapper = new BorderPane(image);
+        Button rotate = new Button(rotateBtnLabel);
         image.setImage(new Image(Constant.FILE_PROTOCOL + absolutePath));
-        image.setFitWidth(400);
-        image.setPreserveRatio(true);
+        Label label = new Label(imageTitle);
+        label.setStyle("-fx-font-size: 16px");
+        BorderPane imageWrapper = new BorderPane(image, label, null, rotate, null);
+        BorderPane.setAlignment(label, Pos.CENTER);
+        BorderPane.setAlignment(rotate, Pos.CENTER);
         imageWrapper.getStyleClass().add(styleClass);
-        imageWrapper.setPrefWidth(400);
+        imageWrapper.setMinWidth(PICTURE_WIDTH);
+        imageWrapper.setPrefWidth(PICTURE_WIDTH);
+        imageWrapper.setMinHeight(pictureHeight);
+        imageWrapper.setPrefHeight(pictureHeight);
+        double height = image.getImage().getHeight();
+        double width = image.getImage().getWidth();
+        double ratio = PICTURE_WIDTH / width * (width / height);
+        double pivotX = width / 2.0;
+        double pivotY = height / 2.0;
+        Scale scaleBig = new Scale(ratio, ratio, pivotX, pivotY);
+        Scale scaleSmall = new Scale(PICTURE_WIDTH / width, PICTURE_WIDTH / width, pivotX, pivotY);
+        image.getTransforms().add(scaleSmall);
+        rotate.setOnAction(e -> {
+            double angle = image.getRotate() - 90;
+            if (angle / 90.0 % 2 != 0) {
+                image.getTransforms().remove(scaleSmall);
+                image.getTransforms().add(scaleBig);
+            } else {
+                image.getTransforms().remove(scaleBig);
+                image.getTransforms().add(scaleSmall);
+            }
+            image.setRotate(angle);
+        });
         return imageWrapper;
     }
 

@@ -45,12 +45,13 @@ public class DuplicateDialog
         GridPane root = new GridPane();
         root.setVgap(10);
         GridPane gridPane = new GridPane();
-        JavaFxUtils.buildScrollPane(gridPane, 500, 700);
         gridPane.setHgap(10);
-        gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), Constant.CSS_CLASS_BOX), 1, 1);
-        gridPane.add(JavaFxUtils.displayPicture(existingPicture.getPath(), Constant.CSS_CLASS_BOX), 2, 1);
-        gridPane.add(JavaFxUtils.buildText(picture.prettyPrint(bundle), 400), 1, 2);
-        gridPane.add(JavaFxUtils.buildText(existingPicture.prettyPrint(bundle), 400), 2, 2);
+        String btnLabel = bundle.getString("duplicate.button.rotate");
+        gridPane.add(JavaFxUtils.displayPicture(picture.getPath(), Constant.CSS_CLASS_BOX, btnLabel, bundle.getString("duplicate.title.rename")), 0, 0);
+        gridPane.add(
+            JavaFxUtils.displayPicture(existingPicture.getPath(), Constant.CSS_CLASS_BOX, btnLabel, bundle.getString("duplicate.title.existing")), 1, 0);
+        gridPane.add(JavaFxUtils.buildText(picture.prettyPrint(bundle), 500), 0, 1);
+        gridPane.add(JavaFxUtils.buildText(existingPicture.prettyPrint(bundle), 500), 1, 1);
 
         // Buttons
         HBox hBox = new HBox();
