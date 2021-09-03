@@ -38,12 +38,12 @@ public final class JavaFxUtils {
      */
     public static BorderPane displayPicture(String absolutePath, String styleClass) {
         ImageView image = new ImageView();
-        BorderPane imageWrapper = new BorderPane(image);
-        image.setImage(new Image(Constant.FILE_PROTOCOL + absolutePath));
-        image.setFitWidth(400);
-        image.setPreserveRatio(true);
+        Button rotate = new Button("btn");
+        BorderPane imageWrapper = new BorderPane(image, new Text("title"), null, rotate, null);
+        image.setImage(new Image(Constant.FILE_PROTOCOL + absolutePath, 400, 0, true, false));
         imageWrapper.getStyleClass().add(styleClass);
         imageWrapper.setPrefWidth(400);
+        rotate.setOnAction(e -> image.setRotate(image.getRotate() - 90));
         return imageWrapper;
     }
 
