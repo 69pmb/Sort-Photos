@@ -8,7 +8,9 @@ import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -291,12 +293,7 @@ public class Controller
     @FXML
     public void process() {
         LOG.debug("Start process");
-        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
         SimpleDateFormat patternSdf = new SimpleDateFormat(pattern.getText());
-        List<String> extensions = Arrays.asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
-                StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
-        List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
-        int size = files.size();
         String key;
         Function<Picture, Date> getFallbackDate;
         if (fallbackCreate.isSelected()) {
@@ -316,26 +313,33 @@ public class Controller
                 }
             };
         }
-        IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
-            Picture picture = new Picture(files.get(i));
-            picture.getTaken().or(() -> {
-                Date fallbackDate = getFallbackDate.apply(picture);
-                if (fallbackDate == null) {
-                    new Alert(AlertType.WARNING, MessageFormat.format(bundle.getString("alert.fail"), picture.getName())).showAndWait();
-                    return Optional.empty();
-                } else {
-                    return processNoTakenDate(picture, MessageFormat.format(bundle.getString(key), fallbackDate), fallbackDate);
-                }
-            }).ifPresent(date -> {
-                String newName = sdf.format(date);
-                try {
-                    renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
-                            new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), (i + 1) + "/" + size);
-                } catch (IOException e) {
-                    throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
-                }
-            });
-        });
+
+        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
+        List<String> extensions = Arrays.asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
+                StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
+        List<List<Picture>> duplicatePictures = new ArrayList<>();
+        MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false).stream().map(Picture::new)
+                .sorted(Comparator.comparing(p -> p.getTaken().orElse(null), Comparator.nullsLast(Comparator.naturalOrder())))
+                .forEach(picture -> picture.getTaken().or(() -> {
+                    Date fallbackDate = getFallbackDate.apply(picture);
+                    if (fallbackDate == null) {
+                        new Alert(AlertType.WARNING, MessageFormat.format(bundle.getString("alert.fail"), picture.getName())).showAndWait();
+                        return Optional.empty();
+                    } else {
+                        return processNoTakenDate(picture, MessageFormat.format(bundle.getString(key), fallbackDate), fallbackDate);
+                    }
+                }).ifPresent(date -> {
+                    String newName = sdf.format(date);
+                    try {
+                        renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
+                                new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), duplicatePictures);
+                    } catch (IOException e) {
+                        throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
+                    }
+                }));
+        int size = duplicatePictures.size();
+        IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(
+                i -> new DuplicateDialog(container, bundle, duplicatePictures.get(i).get(0), duplicatePictures.get(i).get(1), i + 1 + "/" + size));
         messages.setText(bundle.getString("finished"));
         LOG.debug("End process");
     }
@@ -356,7 +360,8 @@ public class Controller
         }
     }
 
-    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder, String count) throws IOException {
+    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder, List<List<Picture>> duplicatePictures)
+            throws IOException {
         String newFilename = newName + MyConstant.DOT + picture.getExtension();
         String newPath;
 
@@ -382,7 +387,7 @@ public class Controller
                     && !Files.isSameFile(picture.toPath(), newFile.toPath()))) {
                 Files.move(picture.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
-                new DuplicateDialog(container, bundle, picture, newPath, new Picture(newFile), count);
+                duplicatePictures.add(List.of(picture, new Picture(newFile)));
             }
         }
     }

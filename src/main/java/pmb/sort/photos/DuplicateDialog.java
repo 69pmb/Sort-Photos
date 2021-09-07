@@ -34,7 +34,7 @@ public class DuplicateDialog
     private GridPane container;
     private ResourceBundle bundle;
 
-    public DuplicateDialog(GridPane container, ResourceBundle bundle, Picture picture, String newPath, Picture existingPicture, String count) {
+    public DuplicateDialog(GridPane container, ResourceBundle bundle, Picture picture, Picture existingPicture, String count) {
         LOG.debug("Start duplicateDialog");
         this.container = container;
         this.bundle = bundle;
@@ -59,8 +59,8 @@ public class DuplicateDialog
             LOG.debug("Do nothing");
             dialog.close();
         });
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"), e -> overwrite(picture, newPath, existingPicture, dialog));
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"), e -> renameWithSuffix(picture, newPath, dialog));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"), e -> overwrite(picture, existingPicture, dialog));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"), e -> renameWithSuffix(picture, existingPicture.getPath(), dialog));
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.delete"), e -> delete(picture, dialog));
         hBox.setSpacing(10);
 
@@ -95,7 +95,7 @@ public class DuplicateDialog
                 throw new MinorException("Error renaming file " + picture.getPath() + " to " + newPath, e1);
             }
         } else {
-            new DuplicateDialog(container, bundle, picture, suffixedPath, new Picture(suffixedFile), "");
+            new DuplicateDialog(container, bundle, picture, new Picture(suffixedFile), "");
         }
     }
 
@@ -109,13 +109,13 @@ public class DuplicateDialog
         }
     }
 
-    private static void overwrite(Picture picture, String newPath, Picture existingPicture, Stage dialog) {
         LOG.debug("Overwrite");
+    private static void overwrite(Picture picture, Picture existingPicture, Stage dialog) {
         try {
             dialog.close();
             Files.move(picture.toPath(), existingPicture.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e1) {
-            throw new MinorException("Error moving file " + picture.getPath() + " to " + newPath, e1);
+            throw new MinorException("Error moving file " + picture.getPath() + " to " + existingPicture.getPath(), e1);
         }
     }
 
