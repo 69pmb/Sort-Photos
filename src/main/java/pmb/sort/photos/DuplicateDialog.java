@@ -75,8 +75,7 @@ public class DuplicateDialog
     }
 
     private void renameWithSuffix(Picture picture, String newPath, Stage dialog) {
-        LOG.debug("Suffix");
-
+        LOG.debug("Start Suffix");
         Integer index = 1;
         String bareNewPath = StringUtils.substringBeforeLast(newPath, MyConstant.DOT);
         String suffix = StringUtils.substringAfterLast(bareNewPath, Constant.SUFFIX_SEPARATOR);
@@ -90,33 +89,38 @@ public class DuplicateDialog
         dialog.close();
         if (!suffixedFile.exists()) {
             try {
+                LOG.debug("Moving file from: {} to: {}", picture.toPath(), suffixedFile.toPath());
                 Files.move(picture.toPath(), suffixedFile.toPath());
             } catch (IOException e1) {
                 throw new MinorException("Error renaming file " + picture.getPath() + " to " + newPath, e1);
             }
         } else {
+            LOG.debug("Existing picture: {}", suffixedFile.toPath());
             new DuplicateDialog(container, bundle, picture, new Picture(suffixedFile), "");
         }
+        LOG.debug("End Suffix");
     }
 
     private static void delete(Picture picture, Stage dialog) {
-        LOG.debug("Delete");
+        LOG.debug("Start Delete");
         try {
             dialog.close();
             Files.deleteIfExists(picture.toPath());
         } catch (IOException e1) {
             throw new MinorException("Error deleting file " + picture.getPath(), e1);
         }
+        LOG.debug("End Delete");
     }
 
-        LOG.debug("Overwrite");
     private static void overwrite(Picture picture, Picture existingPicture, Stage dialog) {
+        LOG.debug("Start Overwrite");
         try {
             dialog.close();
             Files.move(picture.toPath(), existingPicture.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e1) {
             throw new MinorException("Error moving file " + picture.getPath() + " to " + existingPicture.getPath(), e1);
         }
+        LOG.debug("End Overwrite");
     }
 
 }
