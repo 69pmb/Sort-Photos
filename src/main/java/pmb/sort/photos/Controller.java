@@ -345,7 +345,7 @@ public class Controller
     }
 
     private Optional<Date> processNoTakenDate(Picture picture, String message, Date fallbackDate) {
-        LOG.warn("No taken date for picture: {}", picture.getPath());
+        LOG.info("No taken date for picture: {}", picture.getPath());
         Alert alert = new Alert(AlertType.CONFIRMATION,
                 MessageFormat.format(bundle.getString("alert.message"), StringUtils.abbreviate(picture.getName(), 40)) + MyConstant.NEW_LINE
                         + message,
@@ -355,7 +355,7 @@ public class Controller
         if (alert.showAndWait().map(response -> response == ButtonType.YES).orElse(false)) {
             return Optional.ofNullable(fallbackDate);
         } else {
-            LOG.info("Picture is ignored");
+            LOG.debug("Picture is ignored");
             return Optional.empty();
         }
     }
@@ -382,11 +382,12 @@ public class Controller
         File newFile = new File(newPath);
         if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
                 StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
-            LOG.info("New path {} for {}", newPath, picture.getPath());
             if (!newFile.exists() || (overwriteIdentical.isSelected() && picture.equals(new Picture(newFile))
                     && !Files.isSameFile(picture.toPath(), newFile.toPath()))) {
+                LOG.debug("{} renamed to {}", picture.getPath(), newPath);
                 Files.move(picture.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
+                LOG.debug("File {} already exist for {}", newPath, picture.getPath());
                 duplicatePictures.add(List.of(picture, new Picture(newFile)));
             }
         }
