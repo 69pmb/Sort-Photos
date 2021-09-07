@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,7 +27,7 @@ import pmb.sort.photos.utils.MiscUtils;
  */
 public class Picture {
 
-    private static final Function<Date, String> FORMAT = date -> DateFormat.getInstance().format(date);
+    private static final Function<Date, String> FORMAT = date -> new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS").format(date);
     private String path;
     private String name;
     private String extension;
