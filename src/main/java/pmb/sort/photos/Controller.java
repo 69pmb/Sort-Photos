@@ -319,24 +319,27 @@ public class Controller
                 StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
         List<List<Picture>> duplicatePictures = new ArrayList<>();
         MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false).stream().map(Picture::new)
-                .sorted(Comparator.comparing(p -> p.getTaken().orElse(null), Comparator.nullsLast(Comparator.naturalOrder())))
-                .forEach(picture -> picture.getTaken().or(() -> {
-                    Date fallbackDate = getFallbackDate.apply(picture);
-                    if (fallbackDate == null) {
-                        new Alert(AlertType.WARNING, MessageFormat.format(bundle.getString("alert.fail"), picture.getName())).showAndWait();
-                        return Optional.empty();
-                    } else {
-                        return processNoTakenDate(picture, MessageFormat.format(bundle.getString(key), fallbackDate), fallbackDate);
-                    }
-                }).ifPresent(date -> {
-                    String newName = sdf.format(date);
-                    try {
-                        renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
-                                new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), duplicatePictures);
-                    } catch (IOException e) {
-                        throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
-                    }
-                }));
+        .sorted(Comparator.comparing(p -> p.getTaken().orElse(null), Comparator.nullsLast(Comparator.naturalOrder())))
+        .forEach(picture -> picture.getTaken().or(() -> {
+            Date fallbackDate = getFallbackDate.apply(picture);
+            if (fallbackDate == null) {
+                Alert warning = new Alert(AlertType.WARNING, MessageFormat.format(bundle.getString("alert.fail"), StringUtils.abbreviate(picture.getName(), 40)));
+                warning.setResizable(true);
+                warning.getDialogPane().setMinWidth(700D);
+                warning.showAndWait();
+                return Optional.empty();
+            } else {
+                return processNoTakenDate(picture, MessageFormat.format(bundle.getString(key), fallbackDate), fallbackDate);
+            }
+        }).ifPresent(date -> {
+            String newName = sdf.format(date);
+            try {
+                renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
+                        new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), duplicatePictures);
+            } catch (IOException e) {
+                throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
+            }
+        }));
         int size = duplicatePictures.size();
         IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(
                 i -> new DuplicateDialog(container, bundle, duplicatePictures.get(i).get(0), duplicatePictures.get(i).get(1), i + 1 + "/" + size));
