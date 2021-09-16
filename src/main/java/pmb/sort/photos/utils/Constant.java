@@ -12,6 +12,7 @@ public final class Constant {
     public static final String EXTENSION_SEPARATOR = ",";
     public static final String CSS_FILE = "application.css";
     public static final String CSS_CLASS_ERROR = "error";
+    public static final String CSS_CLASS_HIDDEN = "hidden";
     public static final String CSS_CLASS_BOX = "box";
     public static final String YEAR_FORMAT = "yyyy";
     public static final String MONTH_FORMAT = "MM.yyyy";

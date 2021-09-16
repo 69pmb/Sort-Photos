@@ -17,3 +17,7 @@
   -fx-border-style: solid;
   -fx-border-color: #5a5b5c;
 }
+
+.hidden {
+  visibility: hidden;
+}
