@@ -91,17 +91,14 @@ public final class MiscUtils {
     }
 
     /**
-     * Recovers taken date time for a given file representing a picture.
+     * Finds {@link Metadata} of given file representing a picture.
      *
-     * @param file a picture
-     * @return an optional date if no taken date is found or if the metadata can't be read
+     * @param file to process
+     * @return an Optional of Metadata, empty if the metadata can't be read
      */
-    public static Optional<Date> getTakenTime(File file) {
-        Metadata metadata;
+    public static Optional<Metadata> getMetadata(File file) {
         try {
-            metadata = ImageMetadataReader.readMetadata(file);
-            return Optional.ofNullable(metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class))
-                    .map(dir -> dir.getDateOriginal(TimeZone.getDefault()));
+            return Optional.ofNullable(ImageMetadataReader.readMetadata(file));
         } catch (ImageProcessingException | IOException e) {
             LOG.error("Error reading metadata of file: {}", file.getAbsolutePath(), e);
         }
@@ -109,21 +106,24 @@ public final class MiscUtils {
     }
 
     /**
-     * Recovers device model that took the given picture.
+     * Recovers taken date time from {@link Metadata}.
      *
-     * @param file a picture
-     * @return an optional string if no model is found or if the metadata can't be read
+     * @param metadata of a picture file
+     * @return an optional date if no taken date is found
      */
-    public static Optional<String> getModel(File file) {
-        Metadata metadata;
-        try {
-            metadata = ImageMetadataReader.readMetadata(file);
-            return Optional.ofNullable(metadata.getFirstDirectoryOfType(ExifIFD0Directory.class))
-                    .map(dir -> dir.getString(ExifDirectoryBase.TAG_MODEL));
-        } catch (ImageProcessingException | IOException e) {
-            LOG.error("Error reading metadata of file: {}", file.getAbsolutePath(), e);
-        }
-        return Optional.empty();
+    public static Optional<Date> getTakenTime(Metadata metadata) {
+        return Optional.ofNullable(metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class))
+                .map(dir -> dir.getDateOriginal(TimeZone.getDefault()));
+    }
+
+    /**
+     * Recovers device model that took from {@link Metadata}.
+     *
+     * @param metadata of a picture file
+     * @return an optional string if no model is found
+     */
+    public static Optional<String> getModel(Metadata metadata) {
+        return Optional.ofNullable(metadata.getFirstDirectoryOfType(ExifIFD0Directory.class)).map(dir -> dir.getString(ExifDirectoryBase.TAG_MODEL));
     }
 
 }
