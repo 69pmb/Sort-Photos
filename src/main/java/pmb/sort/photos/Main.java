@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import pmb.sort.photos.utils.Constant;
@@ -29,6 +30,7 @@ public class Main
         Scene scene = new Scene(root, 750, 550);
         scene.getStylesheets().add(Main.class.getResource(Constant.CSS_FILE).toExternalForm());
         stage.setScene(scene);
+        stage.getIcons().add(new Image(Main.class.getResourceAsStream("photo.png")));
         stage.show();
         stage.setResizable(false);
         LOG.debug("End start");
