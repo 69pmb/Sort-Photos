@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.drew.metadata.Metadata;
+
 import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.sort.photos.utils.MiscUtils;
@@ -54,8 +56,9 @@ public class Picture {
             throw new MinorException("Error when reading attributes of file: " + path, e);
         }
         size = (attr.size() / 1024) + " KB";
-        model = MiscUtils.getModel(file);
-        taken = MiscUtils.getTakenTime(file);
+        Optional<Metadata> metadata = MiscUtils.getMetadata(file);
+        model = metadata.flatMap(MiscUtils::getModel);
+        taken = metadata.flatMap(MiscUtils::getTakenTime);
         creation = Date.from(attr.creationTime().toInstant());
         modified = Date.from(attr.lastModifiedTime().toInstant());
     }
