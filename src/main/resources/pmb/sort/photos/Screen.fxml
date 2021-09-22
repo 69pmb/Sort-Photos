@@ -146,6 +146,8 @@
                         <FontIcon iconLiteral="mdomz-play_circle_outline" iconSize="16" />
                     </graphic>
                 </Button>
+                <ProgressBar fx:id="progressBar"/>
+                <Label fx:id="progressText"/>
             </children>
             <GridPane.margin>
                 <Insets left="10.0" />

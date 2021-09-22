@@ -35,7 +35,7 @@ public class DuplicateDialog
     private ResourceBundle bundle;
 
     public DuplicateDialog(GridPane container, ResourceBundle bundle, Picture picture, Picture existingPicture, String count) {
-        LOG.debug("Start duplicateDialog");
+        LOG.debug("Start duplicateDialog to rename: '{}' with existing picture '{}'", picture.getPath(), existingPicture.getPath());
         this.container = container;
         this.bundle = bundle;
         Stage dialog = new Stage();

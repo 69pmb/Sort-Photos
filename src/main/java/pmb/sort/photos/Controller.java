@@ -1,22 +1,16 @@
 package pmb.sort.photos;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -28,27 +22,28 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
-import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyFileUtils;
 import pmb.my.starter.utils.MyProperties;
 import pmb.my.starter.utils.VariousUtils;
 import pmb.sort.photos.model.Fallback;
 import pmb.sort.photos.model.Picture;
+import pmb.sort.photos.model.ProcessParams;
 import pmb.sort.photos.model.Property;
 import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.MiscUtils;
@@ -96,6 +91,10 @@ public class Controller
     protected RadioButton fallbackPattern;
     @FXML
     protected TextField pattern;
+    @FXML
+    protected ProgressBar progressBar;
+    @FXML
+    protected Label progressText;
     protected String defaultDirectory;
     private ResourceBundle bundle;
     private Map<Property, TextField> textProperties;
@@ -110,6 +109,7 @@ public class Controller
     public void initialize(URL location, ResourceBundle resources) {
         LOG.debug("Start initialize");
         bundle = resources;
+        setProgressVisibility(false);
         MyProperties.setConfigPath(MyConstant.CONFIGURATION_FILENAME);
         initProperties();
         defaultDirectory = MyProperties.get(Property.DEFAULT_WORKING_DIR.getValue()).filter(path -> new File(path).exists())
@@ -293,6 +293,7 @@ public class Controller
     @FXML
     public void process() {
         LOG.debug("Start process");
+        setProgressVisibility(true);
         SimpleDateFormat patternSdf = new SimpleDateFormat(pattern.getText());
         String key;
         Function<Picture, Date> getFallbackDate;
@@ -316,84 +317,36 @@ public class Controller
 
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
         List<String> extensions = Arrays.asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
-                StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
-        List<List<Picture>> duplicatePictures = new ArrayList<>();
-        MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false).stream().map(Picture::new)
-        .sorted(Comparator.comparing(p -> p.getTaken().orElse(null), Comparator.nullsLast(Comparator.naturalOrder())))
-        .forEach(picture -> picture.getTaken().or(() -> {
-            Date fallbackDate = getFallbackDate.apply(picture);
-            if (fallbackDate == null) {
-                Alert warning = new Alert(AlertType.WARNING, MessageFormat.format(bundle.getString("alert.fail"), StringUtils.abbreviate(picture.getName(), 40)));
-                warning.setResizable(true);
-                warning.getDialogPane().setMinWidth(700D);
-                warning.showAndWait();
-                return Optional.empty();
-            } else {
-                return processNoTakenDate(picture, MessageFormat.format(bundle.getString(key), fallbackDate), fallbackDate);
-            }
-        }).ifPresent(date -> {
-            String newName = sdf.format(date);
-            try {
-                renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
-                        new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), duplicatePictures);
-            } catch (IOException e) {
-                throw new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e);
-            }
-        }));
-        int size = duplicatePictures.size();
-        IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(
-                i -> new DuplicateDialog(container, bundle, duplicatePictures.get(i).get(0), duplicatePictures.get(i).get(1), i + 1 + "/" + size));
-        messages.setText(bundle.getString("finished"));
+            StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
+        List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
+
+        Task<List<List<Picture>>> task = new ProcessTask(new ProcessParams(files, bundle, getFallbackDate, sdf, key, selectedDir.getText(),
+            enableFoldersOrganization.isSelected(), radioRoot.isSelected(), radioYear.isSelected(), overwriteIdentical.isSelected()));
+
+        task.setOnFailed(wse -> {
+            wse.getSource().getException().printStackTrace();
+            processBtn.setDisable(false);
+            messages.setText(bundle.getString("finished.error"));
+            setProgressVisibility(false);
+        });
+
+        task.setOnSucceeded(wse -> {
+            processBtn.setDisable(false);
+            messages.setText(bundle.getString("finished"));
+            List<List<Picture>> duplicatePictures = task.getValue();
+            int size = duplicatePictures.size();
+            IntStream.iterate(0, i -> i < size, i -> i + 1)
+                .forEach(i -> new DuplicateDialog(container, bundle, duplicatePictures.get(i).get(0), duplicatePictures.get(i).get(1), i + 1 + "/" + size));
+            setProgressVisibility(false);
+        });
+
+        // Binding our UI values to the properties on the task
+        progressBar.progressProperty().bind(task.progressProperty());
+        progressText.textProperty().bind(task.messageProperty());
+
+        processBtn.setDisable(true);
+        new Thread(task).start();
         LOG.debug("End process");
-    }
-
-    private Optional<Date> processNoTakenDate(Picture picture, String message, Date fallbackDate) {
-        LOG.info("No taken date for picture: {}", picture.getPath());
-        Alert alert = new Alert(AlertType.CONFIRMATION,
-                MessageFormat.format(bundle.getString("alert.message"), StringUtils.abbreviate(picture.getName(), 40)) + MyConstant.NEW_LINE
-                        + message,
-                ButtonType.YES, ButtonType.NO);
-        alert.setResizable(true);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        if (alert.showAndWait().map(response -> response == ButtonType.YES).orElse(false)) {
-            return Optional.ofNullable(fallbackDate);
-        } else {
-            LOG.debug("Picture is ignored");
-            return Optional.empty();
-        }
-    }
-
-    private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder, List<List<Picture>> duplicatePictures)
-            throws IOException {
-        String newFilename = newName + MyConstant.DOT + picture.getExtension();
-        String newPath;
-
-        if (enableFoldersOrganization.isSelected() && radioRoot.isSelected()) {
-            String yearPath = selectedDir.getText() + MyConstant.FS + yearFolder;
-            String monthPath = yearPath + MyConstant.FS + monthFolder;
-            MyFileUtils.createFolderIfNotExists(yearPath);
-            MyFileUtils.createFolderIfNotExists(monthPath);
-            newPath = monthPath + MyConstant.FS + newFilename;
-        } else if (enableFoldersOrganization.isSelected() && radioYear.isSelected()) {
-            String monthPath = selectedDir.getText() + MyConstant.FS + monthFolder;
-            MyFileUtils.createFolderIfNotExists(monthPath);
-            newPath = monthPath + MyConstant.FS + newFilename;
-        } else {
-            newPath = selectedDir.getText() + MyConstant.FS + newFilename;
-        }
-
-        File newFile = new File(newPath);
-        if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
-                StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
-            if (!newFile.exists() || (overwriteIdentical.isSelected() && picture.equals(new Picture(newFile))
-                    && !Files.isSameFile(picture.toPath(), newFile.toPath()))) {
-                LOG.debug("{} renamed to {}", picture.getPath(), newPath);
-                Files.move(picture.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
-                LOG.debug("File {} already exist for {}", newPath, picture.getPath());
-                duplicatePictures.add(List.of(picture, new Picture(newFile)));
-            }
-        }
     }
 
     private void detectFolder() {
@@ -407,6 +360,12 @@ public class Controller
             radioRoot.setSelected(true);
         }
         LOG.debug("End detectFolder");
+    }
+
+    private void setProgressVisibility(boolean visible) {
+        Consumer<ObservableList<String>> hide = style -> style.add(Constant.CSS_CLASS_HIDDEN);
+        Consumer<ObservableList<String>> show = style -> style.removeAll(Constant.CSS_CLASS_HIDDEN);
+        List.of(progressBar, progressText).stream().map(Node::getStyleClass).forEach(visible ? show : hide);
     }
 
 }
