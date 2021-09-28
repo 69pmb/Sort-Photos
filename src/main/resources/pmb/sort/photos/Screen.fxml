@@ -14,8 +14,7 @@
     <children>
         <HBox spacing="10" GridPane.rowIndex="2">
             <children>
-                <TextField fx:id="selectedDir" prefHeight="31.0" prefWidth="400">
-                </TextField>
+                <TextField fx:id="selectedDir" prefHeight="31.0" prefWidth="400" />
                 <Button alignment="CENTER" mnemonicParsing="false" onAction="#selectDirectory" text="%browse">
                     <graphic>
                         <FontIcon iconLiteral="mdral-folder_open" iconSize="16" />

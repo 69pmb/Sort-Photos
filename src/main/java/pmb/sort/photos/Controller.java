@@ -132,13 +132,13 @@ public class Controller
         String dir = selectedDir.getText();
         File file = new File(dir);
         if (StringUtils.isNotBlank(dir) && file.exists()) {
-            selectedDir.getStyleClass().removeAll(Constant.CSS_CLASS_ERROR);
+            selectedDir.pseudoClassStateChanged(PseudoClass.getPseudoClass(Constant.CSS_CLASS_ERROR), false);
             processBtn.setDisable(false);
             saveDirBtn.setDisable(false);
             detectFolder();
             action.run();
         } else {
-            selectedDir.getStyleClass().add(Constant.CSS_CLASS_ERROR);
+            selectedDir.pseudoClassStateChanged(PseudoClass.getPseudoClass(Constant.CSS_CLASS_ERROR), true);
             processBtn.setDisable(true);
             saveDirBtn.setDisable(true);
         }
@@ -208,7 +208,7 @@ public class Controller
         field.textProperty().addListener(event -> {
             boolean isBlank = MiscUtils.isBlank.test(field);
             boolean isinValid = validate.negate().or(MiscUtils.isInvalidCharacters).test(field);
-            field.pseudoClassStateChanged(PseudoClass.getPseudoClass("error"), isBlank || isinValid);
+            field.pseudoClassStateChanged(PseudoClass.getPseudoClass(Constant.CSS_CLASS_ERROR), isBlank || isinValid);
             udapteWarningMessage(field.getId(), !isBlank, "blank");
             udapteWarningMessage(field.getId(), !isinValid, key);
             if (!warnings.isEmpty()) {
