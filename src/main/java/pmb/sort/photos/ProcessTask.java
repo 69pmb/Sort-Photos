@@ -94,11 +94,20 @@ public class ProcessTask
     }
 
     private void warningDialogFallBackDate(Picture picture) {
-        Alert warning = new Alert(AlertType.WARNING,
-            MessageFormat.format(params.getBundle().getString("alert.fail"), StringUtils.abbreviate(picture.getName(), 40)));
-        warning.setResizable(true);
-        warning.getDialogPane().setMinWidth(700D);
-        warning.showAndWait();
+        FutureTask<Void> warningTask = new FutureTask<>(() -> {
+            Alert warning = new Alert(AlertType.WARNING,
+                MessageFormat.format(params.getBundle().getString("alert.fail"), StringUtils.abbreviate(picture.getName(), 40)));
+            warning.setResizable(true);
+            warning.getDialogPane().setMinWidth(700D);
+            warning.showAndWait();
+            return null;
+        });
+        Platform.runLater(warningTask);
+        try {
+            warningTask.get();
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void renameFile(Picture picture, String newName, String yearFolder, String monthFolder, List<List<Picture>> duplicatePictures)
