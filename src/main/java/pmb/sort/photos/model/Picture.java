@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +37,7 @@ public class Picture {
     private String size;
     private Optional<String> model;
     private Optional<Date> taken;
+    private Supplier<Optional<String>> dimension;
     private Date creation;
     private Date modified;
 
@@ -55,10 +57,11 @@ public class Picture {
         } catch (IOException e) {
             throw new MinorException("Error when reading attributes of file: " + path, e);
         }
-        size = (attr.size() / 1024) + " KB";
+        size = attr.size() / 1024 + " KB";
         Optional<Metadata> metadata = MiscUtils.getMetadata(file);
         model = metadata.flatMap(MiscUtils::getModel);
         taken = metadata.flatMap(MiscUtils::getTakenTime);
+        dimension = () -> metadata.flatMap(m -> MiscUtils.getDimension(m, extension));
         creation = Date.from(attr.creationTime().toInstant());
         modified = Date.from(attr.lastModifiedTime().toInstant());
     }
@@ -75,9 +78,10 @@ public class Picture {
         append.accept("duplicate.name", name);
         append.accept("duplicate.creation_date", FORMAT.apply(creation));
         append.accept("duplicate.modification_date", FORMAT.apply(modified));
-        append.accept("duplicate.taken_time", taken.map(FORMAT::apply).orElse(bundle.getString("duplicate.taken_time.not_found")));
+        append.accept("duplicate.taken_time", taken.map(FORMAT::apply).orElse(bundle.getString("not_found")));
         append.accept("duplicate.model", model.orElse(bundle.getString("duplicate.model.not_found")));
         append.accept("duplicate.size", size);
+        append.accept("duplicate.dimension", dimension.get().orElse(bundle.getString("not_found")));
         return sb.stream().collect(Collectors.joining(MyConstant.NEW_LINE));
     }
 
@@ -168,8 +172,8 @@ public class Picture {
             return false;
         }
         Picture other = (Picture) obj;
-        return Objects.equals(extension, other.extension) && Objects.equals(model, other.model) && Objects.equals(size, other.size)
-                && Objects.equals(taken, other.taken);
+        return Objects.equals(extension, other.extension) && Objects.equals(model, other.model)
+                && Objects.equals(size, other.size) && Objects.equals(taken, other.taken);
     }
 
 }

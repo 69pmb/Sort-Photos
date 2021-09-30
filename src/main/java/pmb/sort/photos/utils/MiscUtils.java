@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.function.BiPredicate;
@@ -12,15 +13,21 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
+import com.drew.metadata.bmp.BmpHeaderDirectory;
 import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.jpeg.JpegDirectory;
+import com.drew.metadata.png.PngDirectory;
+import com.drew.metadata.webp.WebpDirectory;
 
 import javafx.scene.control.TextField;
 import pmb.my.starter.utils.MyConstant;
@@ -43,7 +50,7 @@ public final class MiscUtils {
      * Predicate to test if input contains invalid Windows filesystem's characters.
      */
     public static final Predicate<TextField> isInvalidCharacters = f -> Arrays.stream(MyConstant.getForbiddenCharactersFilename())
-            .anyMatch(s -> f.getText().contains(s));
+        .anyMatch(s -> f.getText().contains(s));
 
     /**
      * Predicate to test if the given date format is valid.
@@ -112,8 +119,24 @@ public final class MiscUtils {
      * @return an optional date if no taken date is found
      */
     public static Optional<Date> getTakenTime(Metadata metadata) {
-        return Optional.ofNullable(metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class))
-                .map(dir -> dir.getDateOriginal(TimeZone.getDefault()));
+        return Optional.ofNullable(metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class)).map(dir -> dir.getDateOriginal(TimeZone.getDefault()));
+    }
+
+    /**
+     * Recovers dimension of a picture from {@link Metadata}.
+     *
+     * @param metadata of a picture file
+     * @param extension of the picture file
+     * @return an optional of String, with pattern "width x height"
+     */
+    public static Optional<String> getDimension(Metadata metadata, Object extension) {
+        Map<String, Triple<Class<? extends Directory>, Integer, Integer>> infoByExtension = Map.of("png",
+            Triple.of(PngDirectory.class, PngDirectory.TAG_IMAGE_WIDTH, PngDirectory.TAG_IMAGE_HEIGHT), "jpg",
+            Triple.of(JpegDirectory.class, JpegDirectory.TAG_IMAGE_WIDTH, JpegDirectory.TAG_IMAGE_HEIGHT), "webp",
+            Triple.of(WebpDirectory.class, WebpDirectory.TAG_IMAGE_WIDTH, WebpDirectory.TAG_IMAGE_HEIGHT), "GIF",
+            Triple.of(BmpHeaderDirectory.class, BmpHeaderDirectory.TAG_IMAGE_WIDTH, BmpHeaderDirectory.TAG_IMAGE_HEIGHT));
+        return Optional.ofNullable(infoByExtension.get(extension)).flatMap(tuple -> Optional.ofNullable(metadata.getFirstDirectoryOfType(tuple.getLeft()))
+            .map(d -> d.getString(tuple.getMiddle()) + " x " + d.getString(tuple.getRight())));
     }
 
     /**
