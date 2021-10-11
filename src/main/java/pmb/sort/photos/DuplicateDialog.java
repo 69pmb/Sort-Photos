@@ -35,7 +35,7 @@ public class DuplicateDialog
     private ResourceBundle bundle;
 
     public DuplicateDialog(GridPane container, ResourceBundle bundle, Picture picture, Picture existingPicture, String count) {
-        LOG.debug("Start duplicateDialog to rename: '{}' with existing picture '{}'", picture.getPath(), existingPicture.getPath());
+        LOG.info("Start duplicateDialog to rename: '{}' with existing picture '{}'", picture.getPath(), existingPicture.getPath());
         this.container = container;
         this.bundle = bundle;
         Stage dialog = new Stage();
@@ -72,7 +72,7 @@ public class DuplicateDialog
         scene.getStylesheets().add(Controller.class.getResource(Constant.CSS_FILE).toExternalForm());
         dialog.setScene(scene);
         dialog.showAndWait();
-        LOG.debug("End duplicateDialog");
+        LOG.info("End duplicateDialog");
     }
 
     private void renameWithSuffix(Picture picture, String newPath, Stage dialog) {

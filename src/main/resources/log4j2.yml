@@ -1,0 +1,18 @@
+Configuration:  
+  name: Default
+  
+  Appenders:
+    Console:      
+      target: SYSTEM_OUT
+      name: LogToConsole
+      PatternLayout:
+        pattern: "%d{HH:mm:ss.SSS} %-5p: %c - %m%n"
+
+  Loggers:
+    Root:
+      level: debug
+    logger:
+       - name: pmb.sort.photos
+         additivity: false
+         AppenderRef:
+           - ref: LogToConsole
