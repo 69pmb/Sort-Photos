@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,8 +18,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import pmb.my.starter.exception.MinorException;
+import pmb.my.starter.exception.MajorException;
 import pmb.my.starter.utils.MyConstant;
+import pmb.my.starter.utils.RunnableThrowing;
 import pmb.sort.photos.model.Picture;
 import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.JavaFxUtils;
@@ -33,12 +35,16 @@ public class DuplicateDialog
 
     private GridPane container;
     private ResourceBundle bundle;
+    private Stage dialog;
+    private List<Exception> exceptions;
 
-    public DuplicateDialog(GridPane container, ResourceBundle bundle, Picture picture, Picture existingPicture, String count) {
+    public DuplicateDialog(GridPane container, ResourceBundle bundle, Picture picture, Picture existingPicture, String count,
+        List<Exception> exceptions) {
         LOG.info("Start duplicateDialog to rename: '{}' with existing picture '{}'", picture.getPath(), existingPicture.getPath());
         this.container = container;
         this.bundle = bundle;
-        Stage dialog = new Stage();
+        this.exceptions = exceptions;
+        dialog = new Stage();
         dialog.initOwner(container.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle(count);
@@ -60,14 +66,17 @@ public class DuplicateDialog
             LOG.debug("Do nothing");
             dialog.close();
         });
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"), e -> overwrite(picture, existingPicture, dialog));
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"), e -> renameWithSuffix(picture, existingPicture.getPath(), dialog));
-        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.delete"), e -> delete(picture, dialog));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"), e -> duplicateAction(() -> overwrite(picture, existingPicture)));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"),
+            e -> duplicateAction(() -> renameWithSuffix(picture, existingPicture.getPath())));
+        JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.delete"), e -> duplicateAction(() -> delete(picture)));
+
         hBox.setSpacing(10);
 
         root.add(gridPane, 1, 1);
         root.add(hBox, 1, 2);
         GridPane.setMargin(hBox, new Insets(10));
+
         Scene scene = new Scene(root);
         scene.getStylesheets().add(Controller.class.getResource(Constant.CSS_FILE).toExternalForm());
         dialog.setScene(scene);
@@ -75,7 +84,7 @@ public class DuplicateDialog
         LOG.info("End duplicateDialog");
     }
 
-    private void renameWithSuffix(Picture picture, String newPath, Stage dialog) {
+    private void renameWithSuffix(Picture picture, String newPath) throws MajorException {
         LOG.debug("Start Suffix");
         Integer index = 1;
         String bareNewPath = StringUtils.substringBeforeLast(newPath, MyConstant.DOT);
@@ -93,35 +102,43 @@ public class DuplicateDialog
                 LOG.debug("Moving file from: {} to: {}", picture.toPath(), suffixedFile.toPath());
                 Files.move(picture.toPath(), suffixedFile.toPath());
             } catch (IOException e1) {
-                throw new MinorException("Error renaming file " + picture.getPath() + " to " + newPath, e1);
+                throw new MajorException("Error renaming file " + picture.getPath() + " to " + newPath, e1);
             }
         } else {
             LOG.debug("Existing picture: {}", suffixedFile.toPath());
-            new DuplicateDialog(container, bundle, picture, new Picture(suffixedFile), "");
+            new DuplicateDialog(container, bundle, picture, new Picture(suffixedFile), "", exceptions);
         }
         LOG.debug("End Suffix");
     }
 
-    private static void delete(Picture picture, Stage dialog) {
+    private static void delete(Picture picture) throws MajorException {
         LOG.debug("Start Delete");
         try {
-            dialog.close();
             Files.deleteIfExists(picture.toPath());
         } catch (IOException e1) {
-            throw new MinorException("Error deleting file " + picture.getPath(), e1);
+            throw new MajorException("Error deleting file " + picture.getPath(), e1);
         }
         LOG.debug("End Delete");
     }
 
-    private static void overwrite(Picture picture, Picture existingPicture, Stage dialog) {
+    private static void overwrite(Picture picture, Picture existingPicture) throws MajorException {
         LOG.debug("Start Overwrite");
         try {
-            dialog.close();
             Files.move(picture.toPath(), existingPicture.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e1) {
-            throw new MinorException("Error moving file " + picture.getPath() + " to " + existingPicture.getPath(), e1);
+            throw new MajorException("Error moving file " + picture.getPath() + " to " + existingPicture.getPath(), e1);
         }
         LOG.debug("End Overwrite");
+    }
+
+    private void duplicateAction(RunnableThrowing runnable) {
+        try {
+            runnable.run();
+        } catch (MajorException e) {
+            exceptions.add(e);
+        } finally {
+            dialog.close();
+        }
     }
 
 }

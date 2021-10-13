@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.drew.metadata.Metadata;
 
+import pmb.my.starter.exception.MajorException;
 import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.sort.photos.utils.MiscUtils;
@@ -45,9 +46,10 @@ public class Picture {
      * Constructor reading file attributes with {@link BasicFileAttributes} and metadata-extractor.
      *
      * @param file to convert
+     * @throws MajorException thrown if reading metadata fails
      * @see Files#readAttributes(Path, Class, java.nio.file.LinkOption...)
      */
-    public Picture(File file) {
+    public Picture(File file) throws MajorException {
         path = file.getAbsolutePath();
         name = file.getName();
         extension = StringUtils.lowerCase(StringUtils.substringAfterLast(path, MyConstant.DOT));

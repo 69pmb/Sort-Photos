@@ -14,8 +14,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -30,6 +28,7 @@ import com.drew.metadata.png.PngDirectory;
 import com.drew.metadata.webp.WebpDirectory;
 
 import javafx.scene.control.TextField;
+import pmb.my.starter.exception.MajorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyProperties;
 import pmb.sort.photos.model.Property;
@@ -38,8 +37,6 @@ import pmb.sort.photos.model.Property;
  * Various methods.
  */
 public final class MiscUtils {
-
-    private static final Logger LOG = LogManager.getLogger(MiscUtils.class);
 
     /**
      * Predicate using {@link StringUtils#isBlank(CharSequence)}
@@ -102,14 +99,15 @@ public final class MiscUtils {
      *
      * @param file to process
      * @return an Optional of Metadata, empty if the metadata can't be read
+     * @throws MajorException thrown when file or metadata can't be read (not found or corrupt for instance)
+     * @see ImageMetadataReader#readMetadata(File)
      */
-    public static Optional<Metadata> getMetadata(File file) {
+    public static Optional<Metadata> getMetadata(File file) throws MajorException {
         try {
             return Optional.ofNullable(ImageMetadataReader.readMetadata(file));
         } catch (ImageProcessingException | IOException e) {
-            LOG.error("Error reading metadata of file: {}", file.getAbsolutePath(), e);
+            throw new MajorException("Error reading metadata of file: " + file.getAbsolutePath(), e);
         }
-        return Optional.empty();
     }
 
     /**

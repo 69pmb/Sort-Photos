@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -320,24 +321,31 @@ public class Controller
             StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
         List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
 
-        Task<List<List<Picture>>> task = new ProcessTask(new ProcessParams(files, bundle, getFallbackDate, sdf, key, selectedDir.getText(),
+        Task<List<Pair<Picture, Picture>>> task = new ProcessTask(new ProcessParams(files, bundle, getFallbackDate, sdf, key, selectedDir.getText(),
             enableFoldersOrganization.isSelected(), radioRoot.isSelected(), radioYear.isSelected(), overwriteIdentical.isSelected()));
 
         task.setOnFailed(wse -> {
-            wse.getSource().getException().printStackTrace();
+            LOG.error(wse.getSource().getException());
             processBtn.setDisable(false);
             messages.setText(bundle.getString("finished.error"));
             setProgressVisibility(false);
         });
 
         task.setOnSucceeded(wse -> {
-            processBtn.setDisable(false);
-            messages.setText(bundle.getString("finished"));
-            List<List<Picture>> duplicatePictures = task.getValue();
+            List<Pair<Picture, Picture>> duplicatePictures = task.getValue();
+            List<Exception> exceptions = ((ProcessTask) task).getExceptions();
             int size = duplicatePictures.size();
-            IntStream.iterate(0, i -> i < size, i -> i + 1)
-                .forEach(i -> new DuplicateDialog(container, bundle, duplicatePictures.get(i).get(0), duplicatePictures.get(i).get(1), i + 1 + "/" + size));
+            IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> new DuplicateDialog(container, bundle, duplicatePictures.get(i).getLeft(),
+                duplicatePictures.get(i).getRight(), i + 1 + "/" + size, exceptions));
+            processBtn.setDisable(false);
             setProgressVisibility(false);
+            if (exceptions.isEmpty()) {
+                messages.setText(bundle.getString("finished"));
+            } else {
+                LOG.error("Encounter {} exception(s) during process", exceptions.size());
+                exceptions.forEach(e -> LOG.error("", e));
+                messages.setText(bundle.getString("finished.error"));
+            }
         });
 
         // Binding our UI values to the properties on the task
