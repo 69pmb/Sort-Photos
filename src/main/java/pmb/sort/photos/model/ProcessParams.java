@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.function.Function;
 
@@ -15,14 +16,10 @@ public class ProcessParams {
     private SimpleDateFormat sdf;
     private String key;
     private String selectedDir;
-    private boolean enableFoldersOrganization;
-    private boolean radioRoot;
-    private boolean radioYear;
-    private boolean overwriteIdentical;
-    private boolean ignoreNoDate;
+    private Map<Property, Boolean> checkBoxParams;
 
     public ProcessParams(List<File> files, ResourceBundle bundle, Function<Picture, Date> getFallbackDate, SimpleDateFormat sdf, String key,
-        String selectedDir, boolean enableFoldersOrganization, boolean radioRoot, boolean radioYear, boolean overwriteIdentical, boolean ignoreNoDate) {
+        String selectedDir, Map<Property, Boolean> checkBoxParams) {
         super();
         this.files = files;
         this.bundle = bundle;
@@ -30,11 +27,7 @@ public class ProcessParams {
         this.sdf = sdf;
         this.key = key;
         this.selectedDir = selectedDir;
-        this.enableFoldersOrganization = enableFoldersOrganization;
-        this.radioRoot = radioRoot;
-        this.radioYear = radioYear;
-        this.overwriteIdentical = overwriteIdentical;
-        this.ignoreNoDate = ignoreNoDate;
+        this.checkBoxParams = checkBoxParams;
     }
 
     public List<File> getFiles() {
@@ -85,44 +78,8 @@ public class ProcessParams {
         this.selectedDir = selectedDir;
     }
 
-    public boolean getEnableFoldersOrganization() {
-        return enableFoldersOrganization;
-    }
-
-    public void setEnableFoldersOrganization(boolean enableFoldersOrganization) {
-        this.enableFoldersOrganization = enableFoldersOrganization;
-    }
-
-    public boolean getRadioRoot() {
-        return radioRoot;
-    }
-
-    public void setRadioRoot(boolean radioRoot) {
-        this.radioRoot = radioRoot;
-    }
-
-    public boolean getRadioYear() {
-        return radioYear;
-    }
-
-    public void setRadioYear(boolean radioYear) {
-        this.radioYear = radioYear;
-    }
-
-    public boolean getOverwriteIdentical() {
-        return overwriteIdentical;
-    }
-
-    public void setOverwriteIdentical(boolean overwriteIdentical) {
-        this.overwriteIdentical = overwriteIdentical;
-    }
-
-    public boolean isIgnoreNoDate() {
-        return ignoreNoDate;
-    }
-
-    public void setIgnoreNoDate(boolean ignoreNoDate) {
-        this.ignoreNoDate = ignoreNoDate;
+    public boolean getCheckBoxValue(Property property) {
+        return checkBoxParams.get(property);
     }
 
 }

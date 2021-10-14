@@ -324,9 +324,12 @@ public class Controller
             StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
         List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
 
+        Map<Property, Boolean> checkBoxParams = boxProperties.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().isSelected()));
+        checkBoxParams.put(Property.RADIO_YEAR, radioYear.isSelected());
+        checkBoxParams.put(Property.RADIO_ROOT, radioRoot.isSelected());
         Task<List<Pair<Picture, Picture>>> task = new ProcessTask(
-            new ProcessParams(files, bundle, getFallbackDate, sdf, key, selectedDir.getText(), enableFoldersOrganization.isSelected(),
-                radioRoot.isSelected(), radioYear.isSelected(), overwriteIdentical.isSelected(), ignoreNoDate.isSelected()));
+            new ProcessParams(files, bundle, getFallbackDate, sdf, key, selectedDir.getText(), checkBoxParams));
 
         task.setOnFailed(wse -> {
             LOG.error(wse.getSource().getException());

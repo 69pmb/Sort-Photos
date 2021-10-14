@@ -13,6 +13,8 @@ public enum Property {
     OVERWRITE_IDENTICAL("overwrite_identical"),
     IGNORE_NO_DATE("ignore_no_date"),
     FALL_BACK_CHOICE("fall_back_choice"),
+    RADIO_YEAR("radio_year"),
+    RADIO_ROOT("radio_root"),
     FALL_BACK_PATTERN("fall_back_pattern");
 
     private final String value;

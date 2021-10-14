@@ -32,6 +32,7 @@ import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyFileUtils;
 import pmb.sort.photos.model.Picture;
 import pmb.sort.photos.model.ProcessParams;
+import pmb.sort.photos.model.Property;
 import pmb.sort.photos.utils.Constant;
 
 public class ProcessTask
@@ -82,7 +83,7 @@ public class ProcessTask
     }
 
     private Optional<Date> processNoTakenDate(Picture picture) {
-        if (params.isIgnoreNoDate()) {
+        if (params.getCheckBoxValue(Property.IGNORE_NO_DATE)) {
             return Optional.empty();
         }
         Date fallbackDate = params.getGetFallbackDate().apply(picture);
@@ -135,13 +136,13 @@ public class ProcessTask
         String newPath;
 
         String selectedDir = params.getSelectedDir();
-        if (params.getEnableFoldersOrganization() && params.getRadioRoot()) {
+        if (params.getCheckBoxValue(Property.ENABLE_FOLDERS_ORGANIZATION) && params.getCheckBoxValue(Property.RADIO_ROOT)) {
             String yearPath = selectedDir + MyConstant.FS + yearFolder;
             String monthPath = yearPath + MyConstant.FS + monthFolder;
             MyFileUtils.createFolderIfNotExists(yearPath);
             MyFileUtils.createFolderIfNotExists(monthPath);
             newPath = monthPath + MyConstant.FS + newFilename;
-        } else if (params.getEnableFoldersOrganization() && params.getRadioYear()) {
+        } else if (params.getCheckBoxValue(Property.ENABLE_FOLDERS_ORGANIZATION) && params.getCheckBoxValue(Property.RADIO_YEAR)) {
             String monthPath = selectedDir + MyConstant.FS + monthFolder;
             MyFileUtils.createFolderIfNotExists(monthPath);
             newPath = monthPath + MyConstant.FS + newFilename;
@@ -153,8 +154,8 @@ public class ProcessTask
         if (!StringUtils.equals(newPath, picture.getPath()) && !StringUtils.equals(StringUtils.substringBeforeLast(newPath, MyConstant.DOT),
             StringUtils.substringBeforeLast(picture.getPath(), Constant.SUFFIX_SEPARATOR))) {
             Picture newPicture = new Picture(newFile);
-            if (!newFile.exists()
-                || params.getOverwriteIdentical() && picture.equals(newPicture) && !Files.isSameFile(picture.toPath(), newFile.toPath())) {
+            if (!newFile.exists() || params.getCheckBoxValue(Property.OVERWRITE_IDENTICAL) && picture.equals(newPicture)
+                && !Files.isSameFile(picture.toPath(), newFile.toPath())) {
                 LOG.debug("{} renamed to {}", picture.getPath(), newPath);
                 Files.move(picture.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
