@@ -12,6 +12,7 @@ public enum Property {
     ENABLE_FOLDERS_ORGANIZATION("enable_folders_organization"),
     OVERWRITE_IDENTICAL("overwrite_identical"),
     IGNORE_NO_DATE("ignore_no_date"),
+    IGNORE_FORMATED("ignore_formated"),
     FALL_BACK_CHOICE("fall_back_choice"),
     RADIO_YEAR("radio_year"),
     RADIO_ROOT("radio_root"),

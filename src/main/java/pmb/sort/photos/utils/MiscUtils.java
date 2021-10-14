@@ -2,6 +2,7 @@ package pmb.sort.photos.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -92,6 +93,21 @@ public final class MiscUtils {
      */
     public static String getDefaultValue(Property property) {
         return MyProperties.getOrDefault(property.getValue(), "");
+    }
+
+    /**
+     * Checks if given date matches given format.
+     *
+     * @param date to check
+     * @param format the format to match against
+     * @return true if a date could be parsed, false otherwise
+     */
+    public static boolean isStringMatchDateFormat(String date, SimpleDateFormat format) {
+        try {
+            return format.parse(date) != null;
+        } catch (ParseException e) {
+            return false;
+        }
     }
 
     /**

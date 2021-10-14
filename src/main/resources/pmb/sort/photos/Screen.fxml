@@ -9,7 +9,7 @@
 <?import javafx.scene.text.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 
-<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="700.0" prefWidth="1000.0" vgap="10"
+<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="800.0" prefWidth="1000.0" vgap="10"
     xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pmb.sort.photos.Controller">
     <children>
         <HBox spacing="10" GridPane.rowIndex="2">
@@ -73,13 +73,18 @@
                                 <CheckBox fx:id="overwriteIdentical" GridPane.columnIndex="2"
                                     GridPane.rowIndex="5" />
 
-                                <Label text="%properties.ignore.no.date" GridPane.columnIndex="1"
+                                <Label text="%properties.ignore.formated" GridPane.columnIndex="1"
                                     GridPane.rowIndex="6" />
-                                <CheckBox fx:id="ignoreNoDate" GridPane.columnIndex="2"
+                                <CheckBox fx:id="ignoreFormated" GridPane.columnIndex="2"
                                     GridPane.rowIndex="6" />
 
-                                <Label text="%properties.fallback" GridPane.columnIndex="1" GridPane.rowIndex="7" />
-                                <HBox spacing="10" GridPane.rowIndex="8" GridPane.columnIndex="1"
+                                <Label text="%properties.ignore.no.date" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="7" />
+                                <CheckBox fx:id="ignoreNoDate" GridPane.columnIndex="2"
+                                    GridPane.rowIndex="7" />
+
+                                <Label text="%properties.fallback" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+                                <HBox spacing="10" GridPane.rowIndex="9" GridPane.columnIndex="1"
                                     GridPane.columnSpan="2">
                                     <RadioButton fx:id="fallbackCreate" text="%properties.fallback.create">
                                         <toggleGroup>
@@ -93,7 +98,7 @@
                                     <TextField fx:id="pattern" />
                                 </HBox>
 
-                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="9">
+                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="10">
                                     <children>
                                         <Button onAction="#initProperties" text="%reset">
                                             <graphic>
@@ -108,7 +113,7 @@
                                     </children>
                                 </HBox>
                                 <Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
-                                    GridPane.rowIndex="10" />
+                                    GridPane.rowIndex="11" />
                             </children>
                             <columnConstraints>
                                 <ColumnConstraints />

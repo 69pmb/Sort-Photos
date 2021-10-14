@@ -69,6 +69,8 @@ public class Controller
     @FXML
     protected CheckBox overwriteIdentical;
     @FXML
+    protected CheckBox ignoreFormated;
+    @FXML
     protected CheckBox ignoreNoDate;
     @FXML
     protected Text messageProperties;
@@ -201,7 +203,7 @@ public class Controller
         List.of(dateFormat, pattern).forEach(field -> addValidation(field, MiscUtils.isValidDateFormat, "date.format"));
         textProperties.forEach((prop, text) -> text.setText(MiscUtils.getDefaultValue(prop)));
         boxProperties = Map.of(Property.ENABLE_FOLDERS_ORGANIZATION, enableFoldersOrganization, Property.OVERWRITE_IDENTICAL, overwriteIdentical,
-            Property.IGNORE_NO_DATE, ignoreNoDate);
+            Property.IGNORE_NO_DATE, ignoreNoDate, Property.IGNORE_FORMATED, ignoreFormated);
         boxProperties.forEach((prop, box) -> box.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(prop))));
         initFallbackValue();
         disableRadioButtons();

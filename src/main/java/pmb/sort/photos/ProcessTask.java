@@ -34,6 +34,7 @@ import pmb.sort.photos.model.Picture;
 import pmb.sort.photos.model.ProcessParams;
 import pmb.sort.photos.model.Property;
 import pmb.sort.photos.utils.Constant;
+import pmb.sort.photos.utils.MiscUtils;
 
 public class ProcessTask
     extends Task<List<Pair<Picture, Picture>>> {
@@ -50,6 +51,7 @@ public class ProcessTask
 
     @Override
     protected List<Pair<Picture, Picture>> call() throws Exception {
+        LOG.debug("Start ProcessTask");
         List<Pair<Picture, Picture>> duplicatePictures = new ArrayList<>();
         AtomicInteger count = new AtomicInteger(1);
         AtomicInteger count2 = new AtomicInteger(1);
@@ -58,15 +60,17 @@ public class ProcessTask
         updateProgress(0, size);
         updateMessage("");
 
-        files.stream().map(f -> {
-            updateProgress(count, size, "analyzing");
-            try {
-                return new Picture(f);
-            } catch (MajorException e) {
-                exceptions.add(e);
-                return null;
-            }
-        }).filter(Objects::nonNull).sorted(Comparator.comparing(p -> p.getTaken().orElse(null), Comparator.nullsLast(Comparator.naturalOrder())))
+        files.stream()
+            .filter(file -> !params.getCheckBoxValue(Property.IGNORE_FORMATED) || !MiscUtils.isStringMatchDateFormat(file.getName(), params.getSdf()))
+            .map(f -> {
+                updateProgress(count, size, "analyzing");
+                try {
+                    return new Picture(f);
+                } catch (MajorException e) {
+                    exceptions.add(e);
+                    return null;
+                }
+            }).filter(Objects::nonNull).sorted(Comparator.comparing(p -> p.getTaken().orElse(null), Comparator.nullsLast(Comparator.naturalOrder())))
             .forEach(picture -> {
                 updateProgress(count2, size, "processing");
                 picture.getTaken().or(() -> processNoTakenDate(picture)).ifPresent(date -> {
@@ -79,6 +83,7 @@ public class ProcessTask
                     }
                 });
             });
+        LOG.debug("End ProcessTask");
         return duplicatePictures;
     }
 
@@ -159,7 +164,7 @@ public class ProcessTask
                 LOG.debug("{} renamed to {}", picture.getPath(), newPath);
                 Files.move(picture.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else if (!Files.isSameFile(picture.toPath(), newFile.toPath())) {
-                LOG.debug("File {} already exist for {}", newPath, picture.getPath());
+                LOG.debug("Can't rename {} to {}, file already exist", picture.getPath(), newPath);
                 duplicatePictures.add(Pair.of(picture, newPicture));
             }
         }

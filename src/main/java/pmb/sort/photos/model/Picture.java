@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -22,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.drew.metadata.Metadata;
 
 import pmb.my.starter.exception.MajorException;
-import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.sort.photos.utils.MiscUtils;
 
@@ -53,19 +53,28 @@ public class Picture {
         path = file.getAbsolutePath();
         name = file.getName();
         extension = StringUtils.lowerCase(StringUtils.substringAfterLast(path, MyConstant.DOT));
-        BasicFileAttributes attr;
-        try {
-            attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-        } catch (IOException e) {
-            throw new MinorException("Error when reading attributes of file: " + path, e);
+        if (Files.exists(file.toPath())) {
+            BasicFileAttributes attr;
+            try {
+                attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+            } catch (IOException e) {
+                throw new MajorException("Error when reading attributes of file: " + path, e);
+            }
+            size = attr.size() / 1024 + " KB";
+            Optional<Metadata> metadata = MiscUtils.getMetadata(file);
+            model = metadata.flatMap(MiscUtils::getModel);
+            taken = metadata.flatMap(MiscUtils::getTakenTime);
+            dimension = () -> metadata.flatMap(m -> MiscUtils.getDimension(m, extension));
+            creation = Date.from(attr.creationTime().toInstant());
+            modified = Date.from(attr.lastModifiedTime().toInstant());
+        } else {
+            size = "0 KB";
+            model = Optional.empty();
+            taken = Optional.empty();
+            dimension = Optional::empty;
+            creation = Date.from(Instant.now());
+            modified = Date.from(Instant.now());
         }
-        size = attr.size() / 1024 + " KB";
-        Optional<Metadata> metadata = MiscUtils.getMetadata(file);
-        model = metadata.flatMap(MiscUtils::getModel);
-        taken = metadata.flatMap(MiscUtils::getTakenTime);
-        dimension = () -> metadata.flatMap(m -> MiscUtils.getDimension(m, extension));
-        creation = Date.from(attr.creationTime().toInstant());
-        modified = Date.from(attr.lastModifiedTime().toInstant());
     }
 
     /**
