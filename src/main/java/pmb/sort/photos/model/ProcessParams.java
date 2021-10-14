@@ -19,9 +19,10 @@ public class ProcessParams {
     private boolean radioRoot;
     private boolean radioYear;
     private boolean overwriteIdentical;
+    private boolean ignoreNoDate;
 
     public ProcessParams(List<File> files, ResourceBundle bundle, Function<Picture, Date> getFallbackDate, SimpleDateFormat sdf, String key,
-        String selectedDir, boolean enableFoldersOrganization, boolean radioRoot, boolean radioYear, boolean overwriteIdentical) {
+        String selectedDir, boolean enableFoldersOrganization, boolean radioRoot, boolean radioYear, boolean overwriteIdentical, boolean ignoreNoDate) {
         super();
         this.files = files;
         this.bundle = bundle;
@@ -33,6 +34,7 @@ public class ProcessParams {
         this.radioRoot = radioRoot;
         this.radioYear = radioYear;
         this.overwriteIdentical = overwriteIdentical;
+        this.ignoreNoDate = ignoreNoDate;
     }
 
     public List<File> getFiles() {
@@ -113,6 +115,14 @@ public class ProcessParams {
 
     public void setOverwriteIdentical(boolean overwriteIdentical) {
         this.overwriteIdentical = overwriteIdentical;
+    }
+
+    public boolean isIgnoreNoDate() {
+        return ignoreNoDate;
+    }
+
+    public void setIgnoreNoDate(boolean ignoreNoDate) {
+        this.ignoreNoDate = ignoreNoDate;
     }
 
 }

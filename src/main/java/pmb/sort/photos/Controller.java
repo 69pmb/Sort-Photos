@@ -69,6 +69,8 @@ public class Controller
     @FXML
     protected CheckBox overwriteIdentical;
     @FXML
+    protected CheckBox ignoreNoDate;
+    @FXML
     protected Text messageProperties;
     @FXML
     protected RadioButton radioYear;
@@ -198,7 +200,8 @@ public class Controller
         List.of(pictureExtension, videoExtension).forEach(field -> addValidation(field, MiscUtils.isValidExtension, "extension"));
         List.of(dateFormat, pattern).forEach(field -> addValidation(field, MiscUtils.isValidDateFormat, "date.format"));
         textProperties.forEach((prop, text) -> text.setText(MiscUtils.getDefaultValue(prop)));
-        boxProperties = Map.of(Property.ENABLE_FOLDERS_ORGANIZATION, enableFoldersOrganization, Property.OVERWRITE_IDENTICAL, overwriteIdentical);
+        boxProperties = Map.of(Property.ENABLE_FOLDERS_ORGANIZATION, enableFoldersOrganization, Property.OVERWRITE_IDENTICAL, overwriteIdentical,
+            Property.IGNORE_NO_DATE, ignoreNoDate);
         boxProperties.forEach((prop, box) -> box.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(prop))));
         initFallbackValue();
         disableRadioButtons();
@@ -321,8 +324,9 @@ public class Controller
             StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
         List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
 
-        Task<List<Pair<Picture, Picture>>> task = new ProcessTask(new ProcessParams(files, bundle, getFallbackDate, sdf, key, selectedDir.getText(),
-            enableFoldersOrganization.isSelected(), radioRoot.isSelected(), radioYear.isSelected(), overwriteIdentical.isSelected()));
+        Task<List<Pair<Picture, Picture>>> task = new ProcessTask(
+            new ProcessParams(files, bundle, getFallbackDate, sdf, key, selectedDir.getText(), enableFoldersOrganization.isSelected(),
+                radioRoot.isSelected(), radioYear.isSelected(), overwriteIdentical.isSelected(), ignoreNoDate.isSelected()));
 
         task.setOnFailed(wse -> {
             LOG.error(wse.getSource().getException());

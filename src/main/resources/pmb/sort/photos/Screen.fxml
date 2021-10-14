@@ -73,8 +73,13 @@
                                 <CheckBox fx:id="overwriteIdentical" GridPane.columnIndex="2"
                                     GridPane.rowIndex="5" />
 
-                                <Label text="%properties.fallback" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-                                <HBox spacing="10" GridPane.rowIndex="7" GridPane.columnIndex="1"
+                                <Label text="%properties.ignore.no.date" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="6" />
+                                <CheckBox fx:id="ignoreNoDate" GridPane.columnIndex="2"
+                                    GridPane.rowIndex="6" />
+
+                                <Label text="%properties.fallback" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                                <HBox spacing="10" GridPane.rowIndex="8" GridPane.columnIndex="1"
                                     GridPane.columnSpan="2">
                                     <RadioButton fx:id="fallbackCreate" text="%properties.fallback.create">
                                         <toggleGroup>
@@ -88,7 +93,7 @@
                                     <TextField fx:id="pattern" />
                                 </HBox>
 
-                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="8">
+                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="9">
                                     <children>
                                         <Button onAction="#initProperties" text="%reset">
                                             <graphic>
@@ -103,7 +108,7 @@
                                     </children>
                                 </HBox>
                                 <Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
-                                    GridPane.rowIndex="9" />
+                                    GridPane.rowIndex="10" />
                             </children>
                             <columnConstraints>
                                 <ColumnConstraints />

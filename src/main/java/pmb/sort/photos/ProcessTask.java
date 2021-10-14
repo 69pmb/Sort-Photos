@@ -68,25 +68,7 @@ public class ProcessTask
         }).filter(Objects::nonNull).sorted(Comparator.comparing(p -> p.getTaken().orElse(null), Comparator.nullsLast(Comparator.naturalOrder())))
             .forEach(picture -> {
                 updateProgress(count2, size, "processing");
-                picture.getTaken().or(() -> {
-                    Date fallbackDate = params.getGetFallbackDate().apply(picture);
-                    if (fallbackDate == null) {
-                        warningDialogFallBackDate(picture);
-                        return Optional.empty();
-                    } else {
-                        FutureTask<Optional<Date>> noTakenDateTask = new FutureTask<>(new NoTakenDateTask(picture, fallbackDate,
-                            MessageFormat.format(params.getBundle().getString(params.getKey()), params.getSdf().format(fallbackDate)),
-                            params.getBundle().getString("alert.message")));
-                        Platform.runLater(noTakenDateTask);
-                        try {
-                            return noTakenDateTask.get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            exceptions.add(e);
-                            Thread.currentThread().interrupt();
-                            return Optional.empty();
-                        }
-                    }
-                }).ifPresent(date -> {
+                picture.getTaken().or(() -> processNoTakenDate(picture)).ifPresent(date -> {
                     String newName = params.getSdf().format(date);
                     try {
                         renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
@@ -97,6 +79,29 @@ public class ProcessTask
                 });
             });
         return duplicatePictures;
+    }
+
+    private Optional<Date> processNoTakenDate(Picture picture) {
+        if (params.isIgnoreNoDate()) {
+            return Optional.empty();
+        }
+        Date fallbackDate = params.getGetFallbackDate().apply(picture);
+        if (fallbackDate == null) {
+            warningDialogFallBackDate(picture);
+            return Optional.empty();
+        } else {
+            FutureTask<Optional<Date>> noTakenDateTask = new FutureTask<>(new NoTakenDateTask(picture, fallbackDate,
+                MessageFormat.format(params.getBundle().getString(params.getKey()), params.getSdf().format(fallbackDate)),
+                params.getBundle().getString("alert.message")));
+            Platform.runLater(noTakenDateTask);
+            try {
+                return noTakenDateTask.get();
+            } catch (InterruptedException | ExecutionException e) {
+                exceptions.add(e);
+                Thread.currentThread().interrupt();
+                return Optional.empty();
+            }
+        }
     }
 
     private void updateProgress(AtomicInteger count, int size, String message) {
