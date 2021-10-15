@@ -38,6 +38,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import pmb.my.starter.exception.MajorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyFileUtils;
 import pmb.my.starter.utils.MyProperties;
@@ -68,6 +69,8 @@ public class Controller
     protected CheckBox enableFoldersOrganization;
     @FXML
     protected CheckBox overwriteIdentical;
+    @FXML
+    protected CheckBox suffixAuto;
     @FXML
     protected CheckBox ignoreFormated;
     @FXML
@@ -203,7 +206,7 @@ public class Controller
         List.of(dateFormat, pattern).forEach(field -> addValidation(field, MiscUtils.isValidDateFormat, "date.format"));
         textProperties.forEach((prop, text) -> text.setText(MiscUtils.getDefaultValue(prop)));
         boxProperties = Map.of(Property.ENABLE_FOLDERS_ORGANIZATION, enableFoldersOrganization, Property.OVERWRITE_IDENTICAL, overwriteIdentical,
-            Property.IGNORE_NO_DATE, ignoreNoDate, Property.IGNORE_FORMATED, ignoreFormated);
+            Property.SUFFIX_AUTO, suffixAuto, Property.IGNORE_NO_DATE, ignoreNoDate, Property.IGNORE_FORMATED, ignoreFormated);
         boxProperties.forEach((prop, box) -> box.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(prop))));
         initFallbackValue();
         disableRadioButtons();
@@ -344,8 +347,19 @@ public class Controller
             List<Pair<Picture, Picture>> duplicatePictures = task.getValue();
             List<Exception> exceptions = ((ProcessTask) task).getExceptions();
             int size = duplicatePictures.size();
-            IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> new DuplicateDialog(container, bundle, duplicatePictures.get(i).getLeft(),
-                duplicatePictures.get(i).getRight(), i + 1 + "/" + size, exceptions));
+            IntStream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
+                if (!suffixAuto.isSelected()) {
+                    new DuplicateDialog(container, bundle, duplicatePictures.get(i).getLeft(), duplicatePictures.get(i).getRight(), i + 1 + "/" + size,
+                        exceptions);
+                } else {
+                    try {
+                        DuplicateDialog.renameWithSuffix(container, bundle, exceptions, duplicatePictures.get(i).getLeft(),
+                            duplicatePictures.get(i).getRight().getPath(), true);
+                    } catch (MajorException e1) {
+                        exceptions.add(e1);
+                    }
+                }
+            });
             processBtn.setDisable(false);
             setProgressVisibility(false);
             if (exceptions.isEmpty()) {

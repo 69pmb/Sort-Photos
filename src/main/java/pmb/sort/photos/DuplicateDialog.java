@@ -33,16 +33,12 @@ public class DuplicateDialog
 
     private static final Logger LOG = LogManager.getLogger(DuplicateDialog.class);
 
-    private GridPane container;
-    private ResourceBundle bundle;
     private Stage dialog;
     private List<Exception> exceptions;
 
     public DuplicateDialog(GridPane container, ResourceBundle bundle, Picture picture, Picture existingPicture, String count,
         List<Exception> exceptions) {
         LOG.info("Start duplicateDialog to rename: '{}' with existing picture '{}'", picture.getPath(), existingPicture.getPath());
-        this.container = container;
-        this.bundle = bundle;
         this.exceptions = exceptions;
         dialog = new Stage();
         dialog.initOwner(container.getScene().getWindow());
@@ -68,7 +64,7 @@ public class DuplicateDialog
         });
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.overwrite"), e -> duplicateAction(() -> overwrite(picture, existingPicture)));
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.rename"),
-            e -> duplicateAction(() -> renameWithSuffix(picture, existingPicture.getPath())));
+            e -> duplicateAction(() -> renameWithSuffix(container, bundle, exceptions, picture, existingPicture.getPath(), false)));
         JavaFxUtils.buildButton(hBox, bundle.getString("duplicate.button.delete"), e -> duplicateAction(() -> delete(picture)));
 
         hBox.setSpacing(10);
@@ -84,7 +80,8 @@ public class DuplicateDialog
         LOG.info("End duplicateDialog");
     }
 
-    private void renameWithSuffix(Picture picture, String newPath) throws MajorException {
+    public static void renameWithSuffix(GridPane container, ResourceBundle bundle, List<Exception> exceptions, Picture picture, String newPath,
+        boolean hideDialog) throws MajorException {
         LOG.debug("Start Suffix");
         Integer index = 1;
         String bareNewPath = StringUtils.substringBeforeLast(newPath, MyConstant.DOT);
@@ -92,11 +89,10 @@ public class DuplicateDialog
         if (StringUtils.isNumeric(suffix)) {
             index = Integer.valueOf(suffix) + 1;
         }
-        String suffixedPath = StringUtils.substringBeforeLast(bareNewPath, Constant.SUFFIX_SEPARATOR) + Constant.SUFFIX_SEPARATOR + index
-                + MyConstant.DOT + picture.getExtension();
+        String suffixedPath = StringUtils.substringBeforeLast(bareNewPath, Constant.SUFFIX_SEPARATOR) + Constant.SUFFIX_SEPARATOR + index + MyConstant.DOT
+            + picture.getExtension();
 
         File suffixedFile = new File(suffixedPath);
-        dialog.close();
         if (!suffixedFile.exists()) {
             try {
                 LOG.debug("Moving file from: {} to: {}", picture.toPath(), suffixedFile.toPath());
@@ -106,7 +102,11 @@ public class DuplicateDialog
             }
         } else {
             LOG.debug("Existing picture: {}", suffixedFile.toPath());
-            new DuplicateDialog(container, bundle, picture, new Picture(suffixedFile), "", exceptions);
+            if (!hideDialog) {
+                new DuplicateDialog(container, bundle, picture, new Picture(suffixedFile), "", exceptions);
+            } else {
+                renameWithSuffix(container, bundle, exceptions, picture, suffixedFile.getAbsolutePath(), true);
+            }
         }
         LOG.debug("End Suffix");
     }

@@ -11,6 +11,7 @@ public enum Property {
     DATE_FORMAT("date_format"),
     ENABLE_FOLDERS_ORGANIZATION("enable_folders_organization"),
     OVERWRITE_IDENTICAL("overwrite_identical"),
+    SUFFIX_AUTO("suffix_auto"),
     IGNORE_NO_DATE("ignore_no_date"),
     IGNORE_FORMATED("ignore_formated"),
     FALL_BACK_CHOICE("fall_back_choice"),

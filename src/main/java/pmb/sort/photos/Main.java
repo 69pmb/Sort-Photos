@@ -16,7 +16,7 @@ import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.JavaFxUtils;
 
 public class Main
-        extends Application {
+    extends Application {
 
     private static final Logger LOG = LogManager.getLogger(Main.class);
 
@@ -27,7 +27,7 @@ public class Main
         GridPane root = (GridPane) JavaFxUtils.load("Screen.fxml", locale);
         Parent langBox = JavaFxUtils.load("I18n.fxml", locale);
         root.getChildren().add(0, langBox);
-        Scene scene = new Scene(root, 750, 600);
+        Scene scene = new Scene(root, 750, 650);
         scene.getStylesheets().add(Main.class.getResource(Constant.CSS_FILE).toExternalForm());
         stage.setScene(scene);
         stage.getIcons().add(new Image(Main.class.getResourceAsStream("photo.png")));
