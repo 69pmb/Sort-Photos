@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -36,12 +37,12 @@ import pmb.sort.photos.model.Property;
 import pmb.sort.photos.utils.Constant;
 import pmb.sort.photos.utils.MiscUtils;
 
-public class ProcessTask
-    extends Task<List<Pair<Picture, Picture>>> {
+public class ProcessTask extends Task<List<Pair<Picture, Picture>>> {
 
     private static final Logger LOG = LogManager.getLogger(ProcessTask.class);
 
     private ProcessParams params;
+    private Boolean noTakenDateShowAgain;
     private List<Exception> exceptions;
 
     public ProcessTask(ProcessParams params) {
@@ -60,29 +61,30 @@ public class ProcessTask
         updateProgress(0, size);
         updateMessage("");
 
-        files.stream()
-            .filter(file -> !params.getCheckBoxValue(Property.IGNORE_FORMATED) || !MiscUtils.isStringMatchDateFormat(file.getName(), params.getSdf()))
-            .map(f -> {
-                updateProgress(count, size, "analyzing");
-                try {
-                    return new Picture(f);
-                } catch (MajorException e) {
-                    exceptions.add(e);
-                    return null;
-                }
-            }).filter(Objects::nonNull).sorted(Comparator.comparing(p -> p.getTaken().orElse(null), Comparator.nullsLast(Comparator.naturalOrder())))
-            .forEach(picture -> {
-                updateProgress(count2, size, "processing");
-                picture.getTaken().or(() -> processNoTakenDate(picture)).ifPresent(date -> {
-                    String newName = params.getSdf().format(date);
+        files.stream().filter(file -> !params.getCheckBoxValue(Property.IGNORE_FORMATED)
+                || !MiscUtils.isStringMatchDateFormat(file.getName(), params.getSdf())).map(f -> {
+                    updateProgress(count, size, "analyzing");
                     try {
-                        renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
-                            new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), duplicatePictures);
-                    } catch (MajorException | IOException e) {
-                        exceptions.add(new MinorException("Error when renaming picture " + picture.getPath() + " to " + newName, e));
+                        return new Picture(f);
+                    } catch (MajorException e) {
+                        exceptions.add(e);
+                        return null;
                     }
+                }).filter(Objects::nonNull).sorted(Comparator.comparing(p -> p.getTaken().orElse(null),
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .forEach(picture -> {
+                    updateProgress(count2, size, "processing");
+                    picture.getTaken().or(() -> processNoTakenDate(picture)).ifPresent(date -> {
+                        String newName = params.getSdf().format(date);
+                        try {
+                            renameFile(picture, newName, new SimpleDateFormat(Constant.YEAR_FORMAT).format(date),
+                                    new SimpleDateFormat(Constant.MONTH_FORMAT).format(date), duplicatePictures);
+                        } catch (MajorException | IOException e) {
+                            exceptions.add(new MinorException(
+                                    "Error when renaming picture " + picture.getPath() + " to " + newName, e));
+                        }
+                    });
                 });
-            });
         LOG.debug("End ProcessTask");
         return duplicatePictures;
     }
@@ -96,16 +98,24 @@ public class ProcessTask
             warningDialogFallBackDate(picture);
             return Optional.empty();
         } else {
-            FutureTask<Optional<Date>> noTakenDateTask = new FutureTask<>(new NoTakenDateTask(picture, fallbackDate,
-                MessageFormat.format(params.getBundle().getString(params.getKey()), params.getSdf().format(fallbackDate)),
-                params.getBundle().getString("alert.message")));
-            Platform.runLater(noTakenDateTask);
-            try {
-                return noTakenDateTask.get();
-            } catch (InterruptedException | ExecutionException e) {
-                exceptions.add(e);
-                Thread.currentThread().interrupt();
-                return Optional.empty();
+            if (noTakenDateShowAgain == null) {
+                FutureTask<Pair<Optional<Date>, Boolean>> noTakenDateTask = new FutureTask<>(new NoTakenDateTask(
+                        picture, fallbackDate,
+                        MessageFormat.format(params.getBundle().getString(params.getKey()),
+                                params.getSdf().format(fallbackDate)),
+                        params.getBundle().getString("alert.message"), params.getBundle().getString("alert.checkbox")));
+                Platform.runLater(noTakenDateTask);
+                try {
+                    Pair<Optional<Date>, Boolean> pair = noTakenDateTask.get();
+                    noTakenDateShowAgain = BooleanUtils.isTrue(pair.getRight()) ? pair.getLeft().isPresent() : null;
+                    return pair.getLeft();
+                } catch (InterruptedException | ExecutionException e) {
+                    exceptions.add(e);
+                    Thread.currentThread().interrupt();
+                    return Optional.empty();
+                }
+            } else {
+                return noTakenDateShowAgain ? Optional.ofNullable(fallbackDate) : Optional.empty();
             }
         }
     }
