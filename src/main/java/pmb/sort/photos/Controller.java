@@ -88,6 +88,8 @@ public class Controller
     @FXML
     protected Button processBtn;
     @FXML
+    protected Button stopBtn;
+    @FXML
     protected Button saveProperties;
     @FXML
     protected Text messages;
@@ -303,38 +305,27 @@ public class Controller
     public void process() {
         LOG.debug("Start process");
         setProgressVisibility(true);
-        SimpleDateFormat patternSdf = new SimpleDateFormat(pattern.getText());
-        String key;
-        Function<Picture, Date> getFallbackDate;
-        if (fallbackCreate.isSelected()) {
-            key = "alert.create";
-            getFallbackDate = Picture::getCreation;
-        } else if (fallbackEdit.isSelected()) {
-            key = "alert.edit";
-            getFallbackDate = Picture::getModified;
-        } else {
-            key = "alert.pattern";
-            getFallbackDate = picture -> {
-                try {
-                    return patternSdf.parse(picture.getName());
-                } catch (ParseException e) {
-                    LOG.error("Error when parsing: {} with pattern: {}", picture.getName(), pattern.getText());
-                    return null;
-                }
-            };
-        }
-
-        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat.getText());
-        List<String> extensions = Arrays.asList(ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
-            StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR)));
-        List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()), extensions, false);
+        Pair<String, Function<Picture, Date>> fallback = initFallbackDate();
+        List<File> files = MyFileUtils.listFilesInFolder(new File(selectedDir.getText()),
+                Arrays.asList(
+                        ArrayUtils.addAll(StringUtils.split(pictureExtension.getText(), Constant.EXTENSION_SEPARATOR),
+                                StringUtils.split(videoExtension.getText(), Constant.EXTENSION_SEPARATOR))),
+                false);
 
         Map<Property, Boolean> checkBoxParams = boxProperties.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().isSelected()));
         checkBoxParams.put(Property.RADIO_YEAR, radioYear.isSelected());
         checkBoxParams.put(Property.RADIO_ROOT, radioRoot.isSelected());
-        Task<List<Pair<Picture, Picture>>> task = new ProcessTask(
-            new ProcessParams(files, bundle, getFallbackDate, sdf, key, selectedDir.getText(), checkBoxParams));
+        Task<List<Pair<Picture, Picture>>> task = new ProcessTask(new ProcessParams(files, bundle, fallback.getRight(),
+                new SimpleDateFormat(dateFormat.getText()), fallback.getLeft(), selectedDir.getText(), checkBoxParams));
+
+        stopBtn.setOnAction(e -> task.cancel(true));
+
+        task.setOnCancelled(wse -> {
+            LOG.debug("Task cancelled");
+            processBtn.setDisable(false);
+            setProgressVisibility(false);
+        });
 
         task.setOnFailed(wse -> {
             LOG.error(wse.getSource().getException());
@@ -344,6 +335,7 @@ public class Controller
         });
 
         task.setOnSucceeded(wse -> {
+            LOG.debug("Task succeeded");
             List<Pair<Picture, Picture>> duplicatePictures = task.getValue();
             List<Exception> exceptions = ((ProcessTask) task).getExceptions();
             int size = duplicatePictures.size();
@@ -380,6 +372,30 @@ public class Controller
         LOG.debug("End process");
     }
 
+    private Pair<String, Function<Picture, Date>> initFallbackDate() {
+        SimpleDateFormat patternSdf = new SimpleDateFormat(pattern.getText());
+        String key;
+        Function<Picture, Date> getFallbackDate;
+        if (fallbackCreate.isSelected()) {
+            key = "alert.create";
+            getFallbackDate = Picture::getCreation;
+        } else if (fallbackEdit.isSelected()) {
+            key = "alert.edit";
+            getFallbackDate = Picture::getModified;
+        } else {
+            key = "alert.pattern";
+            getFallbackDate = picture -> {
+                try {
+                    return patternSdf.parse(picture.getName());
+                } catch (ParseException e) {
+                    LOG.error("Error when parsing: {} with pattern: {}", picture.getName(), pattern.getText());
+                    return null;
+                }
+            };
+        }
+        return Pair.of(key, getFallbackDate);
+    }
+
     private void detectFolder() {
         LOG.debug("Start detectFolder");
         File folder = new File(selectedDir.getText());
@@ -397,6 +413,7 @@ public class Controller
         Consumer<ObservableList<String>> hide = style -> style.add(Constant.CSS_CLASS_HIDDEN);
         Consumer<ObservableList<String>> show = style -> style.removeAll(Constant.CSS_CLASS_HIDDEN);
         List.of(progressBar, progressText).stream().map(Node::getStyleClass).forEach(visible ? show : hide);
+        stopBtn.setVisible(visible);
     }
 
 }

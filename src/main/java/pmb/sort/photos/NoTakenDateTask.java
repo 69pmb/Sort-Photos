@@ -7,7 +7,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,10 +18,12 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DialogPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import pmb.sort.photos.model.Picture;
+import pmb.sort.photos.utils.JavaFxUtils;
 
-public class NoTakenDateTask implements Callable<Pair<Optional<Date>, Boolean>> {
+public class NoTakenDateTask implements Callable<Triple<Optional<Date>, Boolean, Boolean>> {
 
     private static final Logger LOG = LogManager.getLogger(NoTakenDateTask.class);
 
@@ -40,18 +42,26 @@ public class NoTakenDateTask implements Callable<Pair<Optional<Date>, Boolean>> 
     }
 
     @Override
-    public Pair<Optional<Date>, Boolean> call() throws Exception {
+    public Triple<Optional<Date>, Boolean, Boolean> call() throws Exception {
         LOG.info("No taken date for picture: {}", picture.getPath());
-        AtomicBoolean result = new AtomicBoolean();
+        AtomicBoolean showAgain = new AtomicBoolean();
+        AtomicBoolean stop = new AtomicBoolean();
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.getDialogPane().applyCss();
         Node graphic = alert.getDialogPane().getGraphic();
         alert.setDialogPane(new DialogPane() {
             @Override
             protected Node createDetailsButton() {
+                HBox box = new HBox();
+                box.setSpacing(10D);
                 CheckBox checkBox = new CheckBox(checkboxLabel);
-                checkBox.setOnAction(e -> result.set(checkBox.isSelected()));
-                return checkBox;
+                checkBox.setOnAction(e -> showAgain.set(checkBox.isSelected()));
+                box.getChildren().add(checkBox);
+                JavaFxUtils.buildButton(box, "Stop", e -> {
+                    alert.close();
+                    stop.set(true);
+                });
+                return box;
             }
         });
         DialogPane dialogPane = alert.getDialogPane();
@@ -64,10 +74,10 @@ public class NoTakenDateTask implements Callable<Pair<Optional<Date>, Boolean>> 
         alert.setResizable(true);
         dialogPane.setMinHeight(Region.USE_PREF_SIZE);
         if (alert.showAndWait().map(response -> response == ButtonType.YES).orElse(false)) {
-            return Pair.of(Optional.ofNullable(fallbackDate), result.get());
+            return Triple.of(Optional.ofNullable(fallbackDate), showAgain.get(), false);
         } else {
             LOG.debug("Picture is ignored: {}", picture.getPath());
-            return Pair.of(Optional.empty(), result.get());
+            return Triple.of(Optional.empty(), showAgain.get(), stop.get());
         }
     }
 }

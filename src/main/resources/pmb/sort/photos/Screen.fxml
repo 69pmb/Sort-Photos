@@ -160,6 +160,11 @@
                         <FontIcon iconLiteral="mdomz-play_circle_outline" iconSize="16" />
                     </graphic>
                 </Button>
+                <Button fx:id="stopBtn" text="%stop" visible="false">
+                    <graphic>
+                        <FontIcon iconLiteral="mdomz-stop" iconSize="16" />
+                    </graphic>
+                </Button>
                 <ProgressBar fx:id="progressBar"/>
                 <Label fx:id="progressText"/>
             </children>

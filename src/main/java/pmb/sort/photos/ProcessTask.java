@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -99,16 +100,20 @@ public class ProcessTask extends Task<List<Pair<Picture, Picture>>> {
             return Optional.empty();
         } else {
             if (noTakenDateShowAgain == null) {
-                FutureTask<Pair<Optional<Date>, Boolean>> noTakenDateTask = new FutureTask<>(new NoTakenDateTask(
-                        picture, fallbackDate,
-                        MessageFormat.format(params.getBundle().getString(params.getKey()),
-                                params.getSdf().format(fallbackDate)),
-                        params.getBundle().getString("alert.message"), params.getBundle().getString("alert.checkbox")));
+                FutureTask<Triple<Optional<Date>, Boolean, Boolean>> noTakenDateTask = new FutureTask<>(
+                        new NoTakenDateTask(picture, fallbackDate,
+                                MessageFormat.format(params.getBundle().getString(params.getKey()),
+                                        params.getSdf().format(fallbackDate)),
+                                params.getBundle().getString("alert.message"),
+                                params.getBundle().getString("alert.checkbox")));
                 Platform.runLater(noTakenDateTask);
                 try {
-                    Pair<Optional<Date>, Boolean> pair = noTakenDateTask.get();
-                    noTakenDateShowAgain = BooleanUtils.isTrue(pair.getRight()) ? pair.getLeft().isPresent() : null;
-                    return pair.getLeft();
+                    Triple<Optional<Date>, Boolean, Boolean> triple = noTakenDateTask.get();
+                    if (BooleanUtils.isTrue(triple.getRight())) {
+                        cancel(true);
+                    }
+                    noTakenDateShowAgain = BooleanUtils.isTrue(triple.getRight()) ? triple.getLeft().isPresent() : null;
+                    return triple.getLeft();
                 } catch (InterruptedException | ExecutionException e) {
                     exceptions.add(e);
                     Thread.currentThread().interrupt();
