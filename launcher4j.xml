@@ -2,10 +2,10 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>C:\Users\Pierre-Marie\Downloads\sort-photos-0.1.0-shaded.jar</jar>
-  <outfile>C:\Users\Pierre-Marie\Documents\Dev\workspace\Sort-Photos\sort-photos.exe</outfile>
+  <jar>C:\workspace\Perso\Sort-Photos\shade\sort-photos.jar</jar>
+  <outfile>C:\Users\Documents\sort-photos.exe</outfile>
   <errTitle></errTitle>
-  <cmdLine>--module-path &quot;${PATH_TO_FX}&quot; --add-modules javafx.controls,javafx.fxml</cmdLine>
+  <cmdLine></cmdLine>
   <chdir>.</chdir>
   <priority>normal</priority>
   <downloadUrl>http://java.com/download</downloadUrl>
@@ -13,7 +13,7 @@
   <stayAlive>false</stayAlive>
   <restartOnCrash>false</restartOnCrash>
   <manifest></manifest>
-  <icon></icon>
+  <icon>C:\Users\Downloads\photo.ico</icon>
   <jre>
     <path></path>
     <bundledJre64Bit>false</bundledJre64Bit>
@@ -22,6 +22,5 @@
     <maxVersion></maxVersion>
     <jdkPreference>preferJre</jdkPreference>
     <runtimeBits>64/32</runtimeBits>
-    <opt>--module-path &quot;%PATH_TO_FX%&quot; --add-modules javafx.controls,javafx.fxml</opt>
   </jre>
 </launch4jConfig>
