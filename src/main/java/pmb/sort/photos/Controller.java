@@ -438,7 +438,7 @@ public class Controller implements Initializable {
             try {
               return patternSdf.parse(picture.getName());
             } catch (ParseException e) {
-              LOG.error(
+              LOG.info(
                   "Error when parsing: {} with pattern: {}", picture.getName(), pattern.getText());
               return null;
             }
