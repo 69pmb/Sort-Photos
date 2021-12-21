@@ -7,12 +7,26 @@ Configuration:
       name: LogToConsole
       PatternLayout:
         pattern: "%d{HH:mm:ss.SSS} %-5p: %c - %m%n"
+    RollingFile:
+      name: LogToFile
+      fileName: errors.log
+      filePattern: errors.%d{yyyy-MM-dd-HH-mm}.log
+      PatternLayout:
+        pattern: "%d{HH:mm:ss} %-5p: %c - line %L - %m%n"
+      Policies:
+        OnStartupTriggeringPolicy:
+          minSize: 1 
+      DefaultRollOverStrategy:
+        max: 5
 
   Loggers:
     Root:
-      level: debug
+      level: debug        
+      AppenderRef:
+        - ref: LogToConsole
     logger:
        - name: pmb.sort.photos
-         additivity: false
+         level: debug
          AppenderRef:
-           - ref: LogToConsole
+           - ref: LogToFile
+             level: warn
