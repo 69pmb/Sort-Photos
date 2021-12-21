@@ -28,6 +28,7 @@ public class Main extends Application {
     scene.getStylesheets().add(Main.class.getResource(Constant.CSS_FILE).toExternalForm());
     stage.setScene(scene);
     stage.getIcons().add(new Image(Main.class.getResourceAsStream("photo.png")));
+    stage.setTitle("Sort Photos");
     stage.show();
     stage.setResizable(false);
     LOG.debug("End start");

@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
@@ -359,6 +359,7 @@ public class Controller implements Initializable {
         wse -> {
           LOG.debug("Task cancelled");
           processBtn.setDisable(false);
+          messages.setText(bundle.getString("cancelled"));
           setProgressVisibility(false);
         });
 
@@ -376,31 +377,33 @@ public class Controller implements Initializable {
           List<Pair<Picture, Picture>> duplicatePictures = task.getValue();
           List<Exception> exceptions = ((ProcessTask) task).getExceptions();
           int size = duplicatePictures.size();
-          IntStream.iterate(0, i -> i < size, i -> i + 1)
-              .forEach(
-                  i -> {
-                    if (!suffixAuto.isSelected()) {
-                      new DuplicateDialog(
-                          container,
-                          bundle,
-                          duplicatePictures.get(i).getLeft(),
-                          duplicatePictures.get(i).getRight(),
-                          i + 1 + "/" + size,
-                          exceptions);
-                    } else {
-                      try {
-                        DuplicateDialog.renameWithSuffix(
-                            container,
-                            bundle,
-                            exceptions,
-                            duplicatePictures.get(i).getLeft(),
-                            duplicatePictures.get(i).getRight().getPath(),
-                            true);
-                      } catch (MajorException e1) {
-                        exceptions.add(e1);
-                      }
-                    }
-                  });
+          for (int i = 0; i < size; i++) {
+            if (!suffixAuto.isSelected()) {
+              DuplicateDialog dialog =
+                  new DuplicateDialog(
+                      container,
+                      bundle,
+                      duplicatePictures.get(i).getLeft(),
+                      duplicatePictures.get(i).getRight(),
+                      i + 1 + "/" + size,
+                      exceptions);
+              if (dialog.isStop()) {
+                break;
+              }
+            } else {
+              try {
+                DuplicateDialog.renameWithSuffix(
+                    container,
+                    bundle,
+                    exceptions,
+                    duplicatePictures.get(i).getLeft(),
+                    duplicatePictures.get(i).getRight().getPath(),
+                    true);
+              } catch (MajorException e1) {
+                exceptions.add(e1);
+              }
+            }
+          }
           processBtn.setDisable(false);
           setProgressVisibility(false);
           if (exceptions.isEmpty()) {

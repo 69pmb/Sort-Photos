@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -30,18 +32,21 @@ public class NoTakenDateTask implements Callable<Triple<Optional<Date>, Boolean,
   private String message;
   private String alertMessage;
   private String checkboxLabel;
+  private String stopLabel;
 
   NoTakenDateTask(
       Picture picture,
       Date fallbackDate,
       String message,
       String alertMessage,
-      String checkboxLabel) {
+      String checkboxLabel,
+      String stopLabel) {
     this.picture = picture;
     this.fallbackDate = fallbackDate;
     this.message = message;
     this.alertMessage = alertMessage;
     this.checkboxLabel = checkboxLabel;
+    this.stopLabel = stopLabel;
   }
 
   @Override
@@ -58,16 +63,17 @@ public class NoTakenDateTask implements Callable<Triple<Optional<Date>, Boolean,
           protected Node createDetailsButton() {
             HBox box = new HBox();
             box.setSpacing(10D);
-            CheckBox checkBox = new CheckBox(checkboxLabel);
-            checkBox.setOnAction(e -> showAgain.set(checkBox.isSelected()));
-            box.getChildren().add(checkBox);
+            box.setAlignment(Pos.CENTER);
             JavaFxUtils.buildButton(
                 box,
-                "Stop",
+                stopLabel,
                 e -> {
                   alert.close();
                   stop.set(true);
                 });
+            CheckBox checkBox = new CheckBox(checkboxLabel);
+            checkBox.setOnAction(e -> showAgain.set(checkBox.isSelected()));
+            box.getChildren().add(checkBox);
             return box;
           }
         });

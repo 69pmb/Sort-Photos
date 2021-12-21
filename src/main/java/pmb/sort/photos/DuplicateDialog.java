@@ -30,6 +30,7 @@ public class DuplicateDialog extends Stage {
 
   private Stage dialog;
   private List<Exception> exceptions;
+  private boolean stop;
 
   public DuplicateDialog(
       GridPane container,
@@ -103,6 +104,14 @@ public class DuplicateDialog extends Stage {
         hBox,
         bundle.getString("duplicate.button.delete"),
         e -> duplicateAction(() -> delete(picture)));
+    JavaFxUtils.buildButton(
+        hBox,
+        bundle.getString("stop"),
+        e -> {
+          LOG.debug("Stop");
+          stop = true;
+          dialog.close();
+        });
 
     hBox.setSpacing(10);
 
@@ -188,5 +197,9 @@ public class DuplicateDialog extends Stage {
     } finally {
       dialog.close();
     }
+  }
+
+  public boolean isStop() {
+    return stop;
   }
 }

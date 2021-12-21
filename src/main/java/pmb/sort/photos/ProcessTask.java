@@ -20,12 +20,16 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import pmb.my.starter.exception.MajorException;
 import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
@@ -111,12 +115,15 @@ public class ProcessTask extends Task<List<Pair<Picture, Picture>>> {
   }
 
   private Optional<Date> processNoTakenDate(Picture picture) {
-    if (params.getCheckBoxValue(Property.IGNORE_NO_DATE)) {
+    if (params.getCheckBoxValue(Property.IGNORE_NO_DATE) || isCancelled()) {
       return Optional.empty();
     }
     Date fallbackDate = params.getGetFallbackDate().apply(picture);
     if (fallbackDate == null) {
-      warningDialogFallBackDate(picture);
+      if (BooleanUtils.isTrue(warningDialogFallBackDate(picture))) {
+        LOG.debug("Stop from warning Dialog FallBack Date");
+        cancel(true);
+      }
       return Optional.empty();
     } else {
       if (noTakenDateShowAgain == null) {
@@ -129,11 +136,13 @@ public class ProcessTask extends Task<List<Pair<Picture, Picture>>> {
                         params.getBundle().getString(params.getKey()),
                         params.getSdf().format(fallbackDate)),
                     params.getBundle().getString("alert.message"),
-                    params.getBundle().getString("alert.checkbox")));
+                    params.getBundle().getString("alert.checkbox"),
+                    params.getBundle().getString("stop")));
         Platform.runLater(noTakenDateTask);
         try {
           Triple<Optional<Date>, Boolean, Boolean> triple = noTakenDateTask.get();
           if (BooleanUtils.isTrue(triple.getRight())) {
+            LOG.debug("Stop from warning no Taken Date Task");
             cancel(true);
           }
           noTakenDateShowAgain =
@@ -145,6 +154,7 @@ public class ProcessTask extends Task<List<Pair<Picture, Picture>>> {
           return Optional.empty();
         }
       } else {
+        LOG.debug("Not show again enable");
         return noTakenDateShowAgain ? Optional.ofNullable(fallbackDate) : Optional.empty();
       }
     }
@@ -157,8 +167,8 @@ public class ProcessTask extends Task<List<Pair<Picture, Picture>>> {
     updateMessage(params.getBundle().getString(message) + percent + "%");
   }
 
-  private void warningDialogFallBackDate(Picture picture) {
-    FutureTask<Void> warningTask =
+  private Boolean warningDialogFallBackDate(Picture picture) {
+    FutureTask<Boolean> warningTask =
         new FutureTask<>(
             () -> {
               Alert warning =
@@ -166,19 +176,24 @@ public class ProcessTask extends Task<List<Pair<Picture, Picture>>> {
                       AlertType.WARNING,
                       MessageFormat.format(
                           params.getBundle().getString("alert.fail"),
-                          StringUtils.abbreviate(picture.getName(), 40)));
+                          StringUtils.abbreviate(picture.getName(), 40)),
+                      new ButtonType(params.getBundle().getString("stop")),
+                      ButtonType.OK);
               warning.setResizable(true);
               warning.getDialogPane().setMinWidth(700D);
-              warning.showAndWait();
-              return null;
+              return warning
+                  .showAndWait()
+                  .map(btn -> btn.getButtonData() == ButtonData.OTHER)
+                  .orElse(false);
             });
     Platform.runLater(warningTask);
     try {
-      warningTask.get();
+      return warningTask.get();
     } catch (InterruptedException | ExecutionException e) {
       exceptions.add(e);
       Thread.currentThread().interrupt();
     }
+    return false;
   }
 
   private void renameFile(
