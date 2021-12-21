@@ -5,7 +5,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator.ReplaceUnderscores;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +14,4 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @Target(TYPE)
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(value = ReplaceUnderscores.class)
-public @interface RunMyTests {
-
-}
+public @interface RunMyTests {}
