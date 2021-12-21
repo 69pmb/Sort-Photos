@@ -2,7 +2,9 @@ package pmb.sort.photos.utils;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -91,7 +93,7 @@ public final class JavaFxUtils {
     Button button = new Button(label);
     button.setAlignment(Pos.CENTER);
     button.setOnAction(action::handle);
-    parent.getChildren().add(button);
+    Optional.ofNullable(parent).map(Pane::getChildren).ifPresent(children -> children.add(button));
     return button;
   }
 
