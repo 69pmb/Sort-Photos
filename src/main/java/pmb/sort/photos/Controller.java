@@ -14,7 +14,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
@@ -152,9 +151,6 @@ public class Controller implements Initializable {
       processBtn.setDisable(false);
       saveDirBtn.setDisable(false);
       detectFolder();
-    } else {
-      processBtn.setDisable(true);
-      saveDirBtn.setDisable(true);
     }
     LOG.debug("End selectDirectory");
   }
