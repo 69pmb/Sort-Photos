@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
+import pmb.my.starter.exception.MajorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyProperties;
 import pmb.sort.photos.RunMyTests;
@@ -79,8 +80,9 @@ class MiscUtilsTest {
   class get_taken_time {
 
     @Test
-    void with_datas() {
-      Optional<Date> takenTime = MiscUtils.getTakenTime(TestUtils.WITH_EXIF);
+    void with_datas() throws MajorException {
+      Optional<Date> takenTime =
+          MiscUtils.getTakenTime(MiscUtils.getMetadata(TestUtils.WITH_EXIF).orElse(null));
       assertTrue(takenTime.isPresent());
       assertEquals(
           "2008-02-07T11:33",
@@ -88,19 +90,23 @@ class MiscUtilsTest {
     }
 
     @Test
-    void without_data() {
-      assertTrue(MiscUtils.getTakenTime(TestUtils.WITHOUT_EXIF).isEmpty());
+    void without_data() throws MajorException {
+      assertTrue(
+          MiscUtils.getTakenTime(MiscUtils.getMetadata(TestUtils.WITHOUT_EXIF).orElse(null))
+              .isEmpty());
     }
 
     @ParameterizedTest(name = "fails when reader throws {0}")
     @ValueSource(classes = {ImageProcessingException.class, IOException.class})
-    void fails(Class<? extends Exception> exception) {
+    void fails(Class<? extends Exception> exception) throws MajorException {
       try (MockedStatic<ImageMetadataReader> reader = mockStatic(ImageMetadataReader.class)) {
         reader
             .when(() -> ImageMetadataReader.readMetadata(TestUtils.WITH_EXIF))
             .thenThrow(exception);
 
-        assertTrue(MiscUtils.getTakenTime(TestUtils.WITH_EXIF).isEmpty());
+        assertTrue(
+            MiscUtils.getTakenTime(MiscUtils.getMetadata(TestUtils.WITH_EXIF).orElse(null))
+                .isEmpty());
 
         reader.verify(() -> ImageMetadataReader.readMetadata(TestUtils.WITH_EXIF));
       }
@@ -111,8 +117,9 @@ class MiscUtilsTest {
   class get_model {
 
     @Test
-    void with_datas() {
-      Optional<String> model = MiscUtils.getModel(TestUtils.WITH_EXIF);
+    void with_datas() throws MajorException {
+      Optional<String> model =
+          MiscUtils.getModel(MiscUtils.getMetadata(TestUtils.WITH_EXIF).orElse(null));
 
       assertAll(
           () -> assertTrue(model.isPresent()),
@@ -120,19 +127,19 @@ class MiscUtilsTest {
     }
 
     @Test
-    void without_data() {
-      assertTrue(MiscUtils.getModel(TestUtils.WITHOUT_EXIF).isEmpty());
+    void without_data() throws MajorException {
+      assertTrue(MiscUtils.getMetadata(TestUtils.WITHOUT_EXIF).isEmpty());
     }
 
     @ParameterizedTest(name = "fails when reader throws {0}")
     @ValueSource(classes = {ImageProcessingException.class, IOException.class})
-    void fails(Class<? extends Exception> exception) {
+    void fails(Class<? extends Exception> exception) throws MajorException {
       try (MockedStatic<ImageMetadataReader> reader = mockStatic(ImageMetadataReader.class)) {
         reader
             .when(() -> ImageMetadataReader.readMetadata(TestUtils.WITH_EXIF))
             .thenThrow(exception);
 
-        assertTrue(MiscUtils.getModel(TestUtils.WITH_EXIF).isEmpty());
+        assertTrue(MiscUtils.getMetadata(TestUtils.WITH_EXIF).isEmpty());
 
         reader.verify(() -> ImageMetadataReader.readMetadata(TestUtils.WITH_EXIF));
       }

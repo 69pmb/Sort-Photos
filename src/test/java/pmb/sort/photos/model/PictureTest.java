@@ -1,6 +1,7 @@
 package pmb.sort.photos.model;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
@@ -57,17 +58,19 @@ class PictureTest {
             .when(() -> Files.readAttributes(withExif.toPath(), BasicFileAttributes.class))
             .thenReturn(attr);
 
-        Picture picture = new Picture(withExif);
-
-        assertAll(
-            () -> TestUtils.assertDate("2020-10-29T18:01", picture.getCreation()),
-            () -> assertEquals("jpg", picture.getExtension()),
-            () -> assertEquals(Optional.of("FinePixS1Pro"), picture.getModel()),
-            () -> TestUtils.assertDate("2020-10-29T18:01", picture.getModified()),
-            () -> assertEquals("test1.jpg", picture.getName()),
-            () -> assertEquals(withExif.getAbsolutePath(), picture.getPath()),
-            () -> assertEquals("91 KB", picture.getSize()),
-            () -> TestUtils.assertDate("2008-02-07T11:33", picture.getTaken().orElseThrow()));
+        assertDoesNotThrow(
+            () -> {
+              Picture picture = new Picture(withExif);
+              assertAll(
+                  () -> TestUtils.assertDate("2020-10-29T18:01", picture.getCreation()),
+                  () -> assertEquals("jpg", picture.getExtension()),
+                  () -> assertEquals(Optional.of("FinePixS1Pro"), picture.getModel()),
+                  () -> TestUtils.assertDate("2020-10-29T18:01", picture.getModified()),
+                  () -> assertEquals("test1.jpg", picture.getName()),
+                  () -> assertEquals(withExif.getAbsolutePath(), picture.getPath()),
+                  () -> assertEquals("91 KB", picture.getSize()),
+                  () -> TestUtils.assertDate("2008-02-07T11:33", picture.getTaken().orElseThrow()));
+            });
 
         files.verify(() -> Files.readAttributes(withExif.toPath(), BasicFileAttributes.class));
       }
@@ -82,19 +85,23 @@ class PictureTest {
             .when(() -> Files.readAttributes(withoutExif.toPath(), BasicFileAttributes.class))
             .thenReturn(attr);
 
-        Picture picture = new Picture(withoutExif);
+        assertDoesNotThrow(
+            () -> {
+              Picture picture = new Picture(withoutExif);
 
-        assertAll(
-            () -> TestUtils.assertDate("2020-10-29T18:01", picture.getCreation()),
-            () -> assertEquals("jpg", picture.getExtension()),
-            () -> assertEquals(Optional.empty(), picture.getModel()),
-            () -> TestUtils.assertDate("2020-10-29T18:01", picture.getModified()),
-            () -> assertEquals("test2.jpg", picture.getName()),
-            () -> assertEquals(withoutExif.getAbsolutePath(), picture.getPath()),
-            () -> assertEquals("91 KB", picture.getSize()),
-            () -> assertEquals(Optional.empty(), picture.getTaken()));
+              assertAll(
+                  () -> TestUtils.assertDate("2020-10-29T18:01", picture.getCreation()),
+                  () -> assertEquals("jpg", picture.getExtension()),
+                  () -> assertEquals(Optional.empty(), picture.getModel()),
+                  () -> TestUtils.assertDate("2020-10-29T18:01", picture.getModified()),
+                  () -> assertEquals("test2.jpg", picture.getName()),
+                  () -> assertEquals(withoutExif.getAbsolutePath(), picture.getPath()),
+                  () -> assertEquals("91 KB", picture.getSize()),
+                  () -> assertEquals(Optional.empty(), picture.getTaken()));
 
-        files.verify(() -> Files.readAttributes(withoutExif.toPath(), BasicFileAttributes.class));
+              files.verify(
+                  () -> Files.readAttributes(withoutExif.toPath(), BasicFileAttributes.class));
+            });
       }
     }
 
@@ -118,37 +125,43 @@ class PictureTest {
 
     @Test
     void with_exif_datas() {
-      Picture picture = new Picture(TestUtils.WITH_EXIF);
-      picture.setCreation(Date.from(Instant.ofEpochMilli(1603990860000L)));
-      picture.setModified(Date.from(Instant.ofEpochMilli(1603990860000L)));
-      String prettyPrint = picture.prettyPrint(TestUtils.BUNDLE);
+      assertDoesNotThrow(
+          () -> {
+            Picture picture = new Picture(TestUtils.WITH_EXIF);
+            picture.setCreation(Date.from(Instant.ofEpochMilli(1603990860000L)));
+            picture.setModified(Date.from(Instant.ofEpochMilli(1603990860000L)));
+            String prettyPrint = picture.prettyPrint(TestUtils.BUNDLE);
 
-      String[] actual = StringUtils.split(prettyPrint, MyConstant.NEW_LINE);
-      assertEquals(6, actual.length);
-      assertPretty("test1.jpg", actual[0]);
-      assertPretty("29/10/2020 18:01", actual[1]);
-      assertPretty("29/10/2020 18:01", actual[2]);
-      assertPretty("07/02/2008 11:33", actual[3]);
-      assertPretty("FinePixS1Pro", actual[4]);
-      assertPretty("84 KB", actual[5]);
+            String[] actual = StringUtils.split(prettyPrint, MyConstant.NEW_LINE);
+            assertEquals(6, actual.length);
+            assertPretty("test1.jpg", actual[0]);
+            assertPretty("29/10/2020 18:01", actual[1]);
+            assertPretty("29/10/2020 18:01", actual[2]);
+            assertPretty("07/02/2008 11:33", actual[3]);
+            assertPretty("FinePixS1Pro", actual[4]);
+            assertPretty("84 KB", actual[5]);
+          });
     }
 
     @Test
     void without_exif_datas() {
-      Picture picture = new Picture(TestUtils.WITHOUT_EXIF);
-      picture.setCreation(Date.from(Instant.ofEpochMilli(1603990860000L)));
-      picture.setModified(Date.from(Instant.ofEpochMilli(1603990860000L)));
+      assertDoesNotThrow(
+          () -> {
+            Picture picture = new Picture(TestUtils.WITHOUT_EXIF);
+            picture.setCreation(Date.from(Instant.ofEpochMilli(1603990860000L)));
+            picture.setModified(Date.from(Instant.ofEpochMilli(1603990860000L)));
 
-      String prettyPrint = picture.prettyPrint(TestUtils.BUNDLE);
+            String prettyPrint = picture.prettyPrint(TestUtils.BUNDLE);
 
-      String[] actual = StringUtils.split(prettyPrint, MyConstant.NEW_LINE);
-      assertEquals(6, actual.length);
-      assertPretty("test2.jpg", actual[0]);
-      assertPretty("29/10/2020 18:01", actual[1]);
-      assertPretty("29/10/2020 18:01", actual[2]);
-      assertPretty("Pas trouvé", actual[3]);
-      assertPretty("Inconnu", actual[4]);
-      assertPretty("62 KB", actual[5]);
+            String[] actual = StringUtils.split(prettyPrint, MyConstant.NEW_LINE);
+            assertEquals(6, actual.length);
+            assertPretty("test2.jpg", actual[0]);
+            assertPretty("29/10/2020 18:01", actual[1]);
+            assertPretty("29/10/2020 18:01", actual[2]);
+            assertPretty("Pas trouvé", actual[3]);
+            assertPretty("Inconnu", actual[4]);
+            assertPretty("62 KB", actual[5]);
+          });
     }
 
     private void assertPretty(String expected, String actual) {
