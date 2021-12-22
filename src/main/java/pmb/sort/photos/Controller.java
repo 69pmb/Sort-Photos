@@ -371,36 +371,8 @@ public class Controller implements Initializable {
     task.setOnSucceeded(
         wse -> {
           LOG.debug("Task succeeded");
-          List<Pair<Picture, Picture>> duplicatePictures = task.getValue();
           List<Exception> exceptions = ((ProcessTask) task).getExceptions();
-          int size = duplicatePictures.size();
-          for (int i = 0; i < size; i++) {
-            if (!suffixAuto.isSelected()) {
-              DuplicateDialog dialog =
-                  new DuplicateDialog(
-                      container,
-                      bundle,
-                      duplicatePictures.get(i).getLeft(),
-                      duplicatePictures.get(i).getRight(),
-                      i + 1 + "/" + size,
-                      exceptions);
-              if (dialog.isStop()) {
-                break;
-              }
-            } else {
-              try {
-                DuplicateDialog.renameWithSuffix(
-                    container,
-                    bundle,
-                    exceptions,
-                    duplicatePictures.get(i).getLeft(),
-                    duplicatePictures.get(i).getRight().getPath(),
-                    true);
-              } catch (MajorException e1) {
-                exceptions.add(e1);
-              }
-            }
-          }
+          handleDuplicatePictures(task, exceptions);
           processBtn.setDisable(false);
           setProgressVisibility(false);
           if (exceptions.isEmpty()) {
@@ -419,6 +391,30 @@ public class Controller implements Initializable {
     processBtn.setDisable(true);
     new Thread(task).start();
     LOG.debug("End process");
+  }
+
+  private void handleDuplicatePictures(
+      Task<List<Pair<Picture, Picture>>> task, List<Exception> exceptions) {
+    List<Pair<Picture, Picture>> duplicatePictures = task.getValue();
+    int size = duplicatePictures.size();
+    for (int i = 0; i < size; i++) {
+      Picture left = duplicatePictures.get(i).getLeft();
+      Picture right = duplicatePictures.get(i).getRight();
+      if (!suffixAuto.isSelected() && left.exists() && right.exists()) {
+        DuplicateDialog dialog =
+            new DuplicateDialog(container, bundle, left, right, i + 1 + "/" + size, exceptions);
+        if (dialog.isStop()) {
+          break;
+        }
+      } else {
+        try {
+          DuplicateDialog.renameWithSuffix(
+              container, bundle, exceptions, left, right.getPath(), true);
+        } catch (MajorException e1) {
+          exceptions.add(e1);
+        }
+      }
+    }
   }
 
   private Pair<String, Function<Picture, Date>> initFallbackDate() {
