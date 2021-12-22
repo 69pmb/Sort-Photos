@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
-
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -56,15 +55,22 @@ public final class JavaFxUtils {
     imageWrapper.getStyleClass().add(styleClass);
     imageWrapper.setMinWidth(PICTURE_WIDTH);
     imageWrapper.setPrefWidth(PICTURE_WIDTH);
-    imageWrapper.setMinHeight(pictureHeight);
-    imageWrapper.setPrefHeight(pictureHeight);
+    imageWrapper.setMinHeight(pictureHeight + 60);
+    imageWrapper.setPrefHeight(pictureHeight + 60);
     double height = image.getImage().getHeight();
     double width = image.getImage().getWidth();
-    double ratio = PICTURE_WIDTH / width * (width / height);
+    double ratio =
+        width > height
+            ? pictureHeight / height * (height / width)
+            : PICTURE_WIDTH / width * (width / height);
     double pivotX = width / 2.0;
     double pivotY = height / 2.0;
     Scale scaleBig = new Scale(ratio, ratio, pivotX, pivotY);
-    Scale scaleSmall = new Scale(PICTURE_WIDTH / width, PICTURE_WIDTH / width, pivotX, pivotY);
+    Scale scaleSmall;
+    scaleSmall =
+        width > height
+            ? new Scale(PICTURE_WIDTH / width, PICTURE_WIDTH / width, pivotX, pivotY)
+            : new Scale(pictureHeight / height, pictureHeight / height, pivotX, pivotY);
     image.getTransforms().add(scaleSmall);
     rotate.setOnAction(
         e -> {
