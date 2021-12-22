@@ -22,14 +22,12 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import pmb.my.starter.exception.MajorException;
 import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
@@ -146,7 +144,7 @@ public class ProcessTask extends Task<List<Pair<Picture, Picture>>> {
             cancel(true);
           }
           noTakenDateShowAgain =
-              BooleanUtils.isTrue(triple.getRight()) ? triple.getLeft().isPresent() : null;
+              BooleanUtils.isTrue(triple.getMiddle()) ? triple.getLeft().isPresent() : null;
           return triple.getLeft();
         } catch (InterruptedException | ExecutionException e) {
           exceptions.add(e);
