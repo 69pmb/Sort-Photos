@@ -103,6 +103,16 @@ public class Picture {
     return Path.of(path);
   }
 
+  /**
+   * Tests whether the picture exists.
+   *
+   * @return true if the file exists; false if the file doesn't exist or its existence cannot be
+   *     determined.
+   */
+  public boolean exists() {
+    return Files.exists(toPath());
+  }
+
   public String getPath() {
     return path;
   }
