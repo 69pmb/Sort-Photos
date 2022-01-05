@@ -60,7 +60,9 @@ public class I18n implements Initializable {
     GridPane gridPane = (GridPane) i18nContainer.getParent();
     Scene scene = gridPane.getScene();
     gridPane.getChildren().clear();
-    gridPane = (GridPane) JavaFxUtils.load("Screen.fxml", langBox.getValue());
+    Locale newLocale = langBox.getValue();
+    Locale.setDefault(newLocale);
+    gridPane = (GridPane) JavaFxUtils.load("Screen.fxml", newLocale);
     gridPane.getChildren().add(0, i18nContainer);
     scene.setRoot(gridPane);
     LOG.debug("End switchLang");
