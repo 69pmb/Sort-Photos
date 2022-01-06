@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
@@ -29,12 +30,14 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import pmb.my.starter.exception.MajorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyFileUtils;
@@ -104,7 +107,8 @@ public class Controller implements Initializable {
           isValidSelectedDirectory(() -> {});
         });
     detectFolder();
-    enableFoldersOrganization.setOnAction(e -> disableRadioButtons());
+    enableFoldersOrganization.setOnAction(e -> disableFolderButtons());
+    ignoreNoDate.setOnAction(e -> disableFallbackButtons());
     LOG.debug("End initialize");
   }
 
@@ -207,7 +211,7 @@ public class Controller implements Initializable {
     boxProperties.forEach(
         (prop, box) -> box.setSelected(BooleanUtils.toBoolean(MiscUtils.getDefaultValue(prop))));
     initFallbackValue();
-    disableRadioButtons();
+    disableFolderButtons();
     LOG.debug("End initProperties");
   }
 
@@ -269,6 +273,7 @@ public class Controller implements Initializable {
     fallbackPattern.setOnAction(e -> pattern.setDisable(!fallbackPattern.isSelected()));
     fallbackEdit.setOnAction(e -> pattern.setDisable(fallbackEdit.isSelected()));
     fallbackCreate.setOnAction(e -> pattern.setDisable(fallbackCreate.isSelected()));
+    disableFallbackButtons();
   }
 
   private void setFallbackValues(
@@ -282,7 +287,12 @@ public class Controller implements Initializable {
     pattern.setDisable(patternValue);
   }
 
-  private void disableRadioButtons() {
+  private void disableFallbackButtons() {
+    List.of(fallbackEdit, fallbackCreate, fallbackPattern, pattern)
+        .forEach(button -> button.setDisable(ignoreNoDate.isSelected()));
+  }
+
+  private void disableFolderButtons() {
     List.of(radioYear, radioMonth, radioRoot)
         .forEach(radio -> radio.setDisable(!enableFoldersOrganization.isSelected()));
   }
