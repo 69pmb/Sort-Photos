@@ -9,186 +9,215 @@
 <?import javafx.scene.text.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 
-<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="800.0" prefWidth="1000.0" vgap="10"
-    xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pmb.sort.photos.Controller">
-    <children>
-        <HBox spacing="10" GridPane.rowIndex="2">
-            <children>
-                <TextField fx:id="selectedDir" prefHeight="31.0" prefWidth="400" />
-                <Button alignment="CENTER" mnemonicParsing="false" onAction="#selectDirectory" text="%browse">
-                    <graphic>
-                        <FontIcon iconLiteral="mdral-folder_open" iconSize="16" />
-                    </graphic>
-                </Button>
-                <Button fx:id="saveDirBtn" alignment="CENTER" mnemonicParsing="false" onAction="#saveDefaultDir"
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="pmb.sort.photos.Controller">
+	<top>
+		<MenuBar>
+			<menus>
+				<Menu text="Menu">
+					<items>
+						<MenuItem text="%menu.open" onAction="#openLogFile">
+							<graphic>
+								<FontIcon iconLiteral="mdal-description" iconSize="16"/>
+							</graphic>
+						</MenuItem>
+						<MenuItem text="%menu.help" onAction="#openHelp">
+							<graphic>
+								<FontIcon iconLiteral="mdal-help_outline" iconSize="16"/>
+							</graphic>
+						</MenuItem>
+						<MenuItem text="%menu.exit" onAction="#exit">
+							<graphic>
+								<FontIcon iconLiteral="mdal-exit_to_app" iconSize="16"/>
+							</graphic>
+						</MenuItem>
+					</items>
+				</Menu>
+			</menus>
+		</MenuBar>
+	</top>
+	<center>
+		<GridPane fx:id="container" alignment="center" hgap="10" prefHeight="800.0" prefWidth="1000.0" vgap="10">
+			<children>
+				<HBox spacing="10" GridPane.rowIndex="2">
+					<children>
+						<TextField fx:id="selectedDir" prefHeight="31.0" prefWidth="400" />
+						<Button alignment="CENTER" mnemonicParsing="false" onAction="#selectDirectory" text="%browse">
+							<graphic>
+								<FontIcon iconLiteral="mdral-folder_open" iconSize="16" />
+							</graphic>
+						</Button>
+						<Button fx:id="saveDirBtn" alignment="CENTER" mnemonicParsing="false" onAction="#saveDefaultDir"
                     text="%directory.chooser.save">
-                    <graphic>
-                        <FontIcon iconLiteral="mdmz-save" iconSize="16" />
-                    </graphic>
-                </Button>
-            </children>
-            <GridPane.margin>
-                <Insets left="10.0" />
-            </GridPane.margin>
-        </HBox>
-        <Accordion GridPane.rowIndex="3">
-            <panes>
-                <TitledPane animated="false" text="%properties.title">
-                    <content>
-                        <GridPane hgap="10" vgap="10">
-                            <children>
-                                <Label text="%properties.date.format" GridPane.columnIndex="1"
+							<graphic>
+								<FontIcon iconLiteral="mdmz-save" iconSize="16" />
+							</graphic>
+						</Button>
+					</children>
+					<GridPane.margin>
+						<Insets left="10.0" />
+					</GridPane.margin>
+				</HBox>
+				<Accordion GridPane.rowIndex="3">
+					<panes>
+						<TitledPane animated="false" text="%properties.title">
+							<content>
+								<GridPane hgap="10" vgap="10">
+									<children>
+										<Label text="%properties.date.format" GridPane.columnIndex="1"
                                     GridPane.rowIndex="1" />
-                                <HBox spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                                    <children>
-                                        <TextField fx:id="dateFormat" minWidth="350" />
-                                        <Button onAction="#openLink">
-                                            <graphic>
-                                                <FontIcon iconLiteral="mdoal-help" iconSize="16" />
-                                            </graphic>
-                                            <tooltip>
-                                                <Tooltip text="%properties.date.format.help" />
-                                            </tooltip>
-                                        </Button>
-                                    </children>
-                                </HBox>
+										<HBox spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="1">
+											<children>
+												<TextField fx:id="dateFormat" minWidth="350" />
+												<Button onAction="#openLink">
+													<graphic>
+														<FontIcon iconLiteral="mdoal-help" iconSize="16" />
+													</graphic>
+													<tooltip>
+														<Tooltip text="%properties.date.format.help" />
+													</tooltip>
+												</Button>
+											</children>
+										</HBox>
 
-                                <Label text="%properties.picture.extension" GridPane.columnIndex="1"
+										<Label text="%properties.picture.extension" GridPane.columnIndex="1"
                                     GridPane.rowIndex="2" />
-                                <TextField fx:id="pictureExtension" GridPane.columnIndex="2"
+										<TextField fx:id="pictureExtension" GridPane.columnIndex="2"
                                     GridPane.rowIndex="2" />
 
-                                <Label text="%properties.video.extension" GridPane.columnIndex="1"
+										<Label text="%properties.video.extension" GridPane.columnIndex="1"
                                     GridPane.rowIndex="3" />
-                                <TextField fx:id="videoExtension" GridPane.columnIndex="2"
+										<TextField fx:id="videoExtension" GridPane.columnIndex="2"
                                     GridPane.rowIndex="3" />
 
-                                <Label text="%properties.enable.folders.organization" GridPane.columnIndex="1"
+										<Label text="%properties.enable.folders.organization" GridPane.columnIndex="1"
                                     GridPane.rowIndex="4" />
-                                <CheckBox fx:id="enableFoldersOrganization" GridPane.columnIndex="2"
+										<CheckBox fx:id="enableFoldersOrganization" GridPane.columnIndex="2"
                                     GridPane.rowIndex="4" />
 
-                                <Label text="%properties.overwrite.identical" GridPane.columnIndex="1"
+										<Label text="%properties.overwrite.identical" GridPane.columnIndex="1"
                                     GridPane.rowIndex="5" />
-                                <CheckBox fx:id="overwriteIdentical" GridPane.columnIndex="2"
+										<CheckBox fx:id="overwriteIdentical" GridPane.columnIndex="2"
                                     GridPane.rowIndex="5" />
 
-                                <Label text="%properties.suffix.automatically" GridPane.columnIndex="1"
+										<Label text="%properties.suffix.automatically" GridPane.columnIndex="1"
                                     GridPane.rowIndex="6" />
-                                <CheckBox fx:id="suffixAuto" GridPane.columnIndex="2"
+										<CheckBox fx:id="suffixAuto" GridPane.columnIndex="2"
                                     GridPane.rowIndex="6" />
 
-                                <Label text="%properties.ignore.formated" GridPane.columnIndex="1"
+										<Label text="%properties.ignore.formated" GridPane.columnIndex="1"
                                     GridPane.rowIndex="7" />
-                                <CheckBox fx:id="ignoreFormated" GridPane.columnIndex="2"
+										<CheckBox fx:id="ignoreFormated" GridPane.columnIndex="2"
                                     GridPane.rowIndex="7" />
 
-                                <Label text="%properties.ignore.no.date" GridPane.columnIndex="1"
+										<Label text="%properties.ignore.no.date" GridPane.columnIndex="1"
                                     GridPane.rowIndex="8" />
-                                <CheckBox fx:id="ignoreNoDate" GridPane.columnIndex="2"
+										<CheckBox fx:id="ignoreNoDate" GridPane.columnIndex="2"
                                     GridPane.rowIndex="8" />
 
-                                <Label text="%properties.fallback" GridPane.columnIndex="1" GridPane.rowIndex="9" />
-                                <HBox spacing="10" GridPane.rowIndex="10" GridPane.columnIndex="1"
+										<Label text="%properties.fallback" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+										<HBox spacing="10" GridPane.rowIndex="10" GridPane.columnIndex="1"
                                     GridPane.columnSpan="2">
-                                    <RadioButton fx:id="fallbackCreate" text="%properties.fallback.create">
-                                        <toggleGroup>
-                                            <ToggleGroup fx:id="fallback" />
-                                        </toggleGroup>
-                                    </RadioButton>
-                                    <RadioButton fx:id="fallbackEdit" text="%properties.fallback.edit"
+											<RadioButton fx:id="fallbackCreate" text="%properties.fallback.create">
+												<toggleGroup>
+													<ToggleGroup fx:id="fallback" />
+												</toggleGroup>
+											</RadioButton>
+											<RadioButton fx:id="fallbackEdit" text="%properties.fallback.edit"
                                         toggleGroup="$fallback" />
-                                    <RadioButton fx:id="fallbackPattern" text="%properties.fallback.pattern"
+											<RadioButton fx:id="fallbackPattern" text="%properties.fallback.pattern"
                                         toggleGroup="$fallback" />
-                                    <TextField fx:id="pattern" />
-                                </HBox>
+											<TextField fx:id="pattern" />
+										</HBox>
 
-                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="11">
-                                    <children>
-                                        <Button onAction="#initProperties" text="%reset">
-                                            <graphic>
-                                                <FontIcon iconLiteral="mdrmz-refresh" iconSize="16" />
-                                            </graphic>
-                                        </Button>
-                                        <Button onAction="#saveProperties" text="%save" fx:id="saveProperties">
-                                            <graphic>
-                                                <FontIcon iconLiteral="mdmz-save" iconSize="16" />
-                                            </graphic>
-                                        </Button>
-                                    </children>
-                                </HBox>
-                                <Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
+										<HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="11">
+											<children>
+												<Button onAction="#initProperties" text="%reset">
+													<graphic>
+														<FontIcon iconLiteral="mdrmz-refresh" iconSize="16" />
+													</graphic>
+												</Button>
+												<Button onAction="#saveProperties" text="%save" fx:id="saveProperties">
+													<graphic>
+														<FontIcon iconLiteral="mdmz-save" iconSize="16" />
+													</graphic>
+												</Button>
+											</children>
+										</HBox>
+										<Text fx:id="messageProperties" wrappingWidth="400.0" GridPane.columnIndex="2"
                                     GridPane.rowIndex="12" />
-                            </children>
-                            <columnConstraints>
-                                <ColumnConstraints />
-                                <ColumnConstraints maxWidth="450" minWidth="150" prefWidth="300" />
-                                <ColumnConstraints maxWidth="450" minWidth="140" prefWidth="400" />
-                            </columnConstraints>
-                            <rowConstraints>
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                            </rowConstraints>
-                        </GridPane>
-                    </content>
-                </TitledPane>
-            </panes>
-            <GridPane.margin>
-                <Insets left="10.0" />
-            </GridPane.margin>
-        </Accordion>
-        <HBox spacing="10" GridPane.rowIndex="4">
-            <children>
-                <RadioButton fx:id="radioYear" text="%radio.year">
-                    <toggleGroup>
-                        <ToggleGroup fx:id="radio" />
-                    </toggleGroup>
-                </RadioButton>
-                <RadioButton fx:id="radioMonth" text="%radio.month" toggleGroup="$radio" />
-                <RadioButton fx:id="radioRoot" text="%radio.root" toggleGroup="$radio" />
-            </children>
-            <GridPane.margin>
-                <Insets left="10.0" />
-            </GridPane.margin>
-        </HBox>
-        <HBox spacing="10" GridPane.rowIndex="5">
-            <children>
-                <Button fx:id="processBtn" text="%start" onAction="#process">
-                    <graphic>
-                        <FontIcon iconLiteral="mdomz-play_circle_outline" iconSize="16" />
-                    </graphic>
-                </Button>
-                <Button fx:id="stopBtn" text="%stop" visible="false">
-                    <graphic>
-                        <FontIcon iconLiteral="mdomz-stop" iconSize="16" />
-                    </graphic>
-                </Button>
-                <ProgressBar fx:id="progressBar"/>
-                <Label fx:id="progressText"/>
-            </children>
-            <GridPane.margin>
-                <Insets left="10.0" />
-            </GridPane.margin>
-        </HBox>
-        <HBox spacing="10" GridPane.rowIndex="6">
-            <children>
-                <Text fx:id="messages" styleClass="success" />
-            </children>
-            <GridPane.margin>
-                <Insets left="10.0" />
-            </GridPane.margin>
-        </HBox>
-    </children>
-    <columnConstraints>
-        <ColumnConstraints />
-        <ColumnConstraints />
-    </columnConstraints>
-    <rowConstraints>
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-    </rowConstraints>
-</GridPane>
+									</children>
+									<columnConstraints>
+										<ColumnConstraints />
+										<ColumnConstraints maxWidth="450" minWidth="150" prefWidth="300" />
+										<ColumnConstraints maxWidth="450" minWidth="140" prefWidth="400" />
+									</columnConstraints>
+									<rowConstraints>
+										<RowConstraints />
+										<RowConstraints />
+										<RowConstraints />
+										<RowConstraints />
+									</rowConstraints>
+								</GridPane>
+							</content>
+						</TitledPane>
+					</panes>
+					<GridPane.margin>
+						<Insets left="10.0" />
+					</GridPane.margin>
+				</Accordion>
+				<HBox spacing="10" GridPane.rowIndex="4">
+					<children>
+						<RadioButton fx:id="radioYear" text="%radio.year">
+							<toggleGroup>
+								<ToggleGroup fx:id="radio" />
+							</toggleGroup>
+						</RadioButton>
+						<RadioButton fx:id="radioMonth" text="%radio.month" toggleGroup="$radio" />
+						<RadioButton fx:id="radioRoot" text="%radio.root" toggleGroup="$radio" />
+					</children>
+					<GridPane.margin>
+						<Insets left="10.0" />
+					</GridPane.margin>
+				</HBox>
+				<HBox spacing="10" GridPane.rowIndex="5">
+					<children>
+						<Button fx:id="processBtn" text="%start" onAction="#process">
+							<graphic>
+								<FontIcon iconLiteral="mdomz-play_circle_outline" iconSize="16" />
+							</graphic>
+						</Button>
+						<Button fx:id="stopBtn" text="%stop" visible="false">
+							<graphic>
+								<FontIcon iconLiteral="mdomz-stop" iconSize="16" />
+							</graphic>
+						</Button>
+						<ProgressBar fx:id="progressBar"/>
+						<Label fx:id="progressText"/>
+					</children>
+					<GridPane.margin>
+						<Insets left="10.0" />
+					</GridPane.margin>
+				</HBox>
+				<HBox spacing="10" GridPane.rowIndex="6">
+					<children>
+						<Text fx:id="messages" styleClass="success" />
+					</children>
+					<GridPane.margin>
+						<Insets left="10.0" />
+					</GridPane.margin>
+				</HBox>
+			</children>
+			<columnConstraints>
+				<ColumnConstraints />
+				<ColumnConstraints />
+			</columnConstraints>
+			<rowConstraints>
+				<RowConstraints />
+				<RowConstraints />
+				<RowConstraints />
+				<RowConstraints />
+			</rowConstraints>
+		</GridPane>
+	</center>
+</BorderPane>

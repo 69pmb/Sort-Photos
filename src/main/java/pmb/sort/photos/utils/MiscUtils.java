@@ -11,6 +11,7 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.jpeg.JpegDirectory;
 import com.drew.metadata.png.PngDirectory;
 import com.drew.metadata.webp.WebpDirectory;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -26,13 +27,18 @@ import java.util.regex.Pattern;
 import javafx.scene.control.TextField;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import pmb.my.starter.exception.MajorException;
+import pmb.my.starter.exception.MinorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyProperties;
 import pmb.sort.photos.model.Property;
 
 /** Various methods. */
 public final class MiscUtils {
+
+  private static final Logger LOG = LogManager.getLogger(MiscUtils.class);
 
   /** Predicate using {@link StringUtils#isBlank(CharSequence)} */
   public static final Predicate<TextField> isBlank = f -> StringUtils.isBlank(f.getText());
@@ -82,6 +88,23 @@ public final class MiscUtils {
    */
   public static String getDefaultValue(Property property) {
     return MyProperties.getOrDefault(property.getValue(), "");
+  }
+
+  /**
+   * Opens given file in default editor.
+   *
+   * @param file to open
+   */
+  public static void openFile(File file) {
+    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+      try {
+        Desktop.getDesktop().open(file);
+      } catch (IOException e) {
+        throw new MinorException("Error when opening file: " + file.getAbsolutePath(), e);
+      }
+    } else {
+      LOG.warn("Desktop not supported");
+    }
   }
 
   /**

@@ -14,7 +14,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
@@ -30,14 +29,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
-
+import javafx.stage.Stage;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import pmb.my.starter.exception.MajorException;
 import pmb.my.starter.utils.MyConstant;
 import pmb.my.starter.utils.MyFileUtils;
@@ -115,6 +113,18 @@ public class Controller implements Initializable {
   public void openLink() {
     VariousUtils.openUrl(
         "https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/text/SimpleDateFormat.html");
+  }
+
+  public void openHelp() {
+    VariousUtils.openUrl("https://github.com/69pmb/Sort-Photos/blob/main/README.md");
+  }
+
+  public void openLogFile() {
+    MiscUtils.openFile(new File(MyConstant.FILE_LOG_PATH));
+  }
+
+  public void exit() {
+    ((Stage) container.getScene().getWindow()).close();
   }
 
   protected void isValidSelectedDirectory(Runnable action) {

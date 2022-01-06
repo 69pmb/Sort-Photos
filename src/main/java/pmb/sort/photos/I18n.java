@@ -12,11 +12,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
+
 import org.apache.commons.text.WordUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import pmb.sort.photos.utils.Constant;
-import pmb.sort.photos.utils.JavaFxUtils;
 
 public class I18n implements Initializable {
 
@@ -62,9 +63,7 @@ public class I18n implements Initializable {
     gridPane.getChildren().clear();
     Locale newLocale = langBox.getValue();
     Locale.setDefault(newLocale);
-    gridPane = (GridPane) JavaFxUtils.load("Screen.fxml", newLocale);
-    gridPane.getChildren().add(0, i18nContainer);
-    scene.setRoot(gridPane);
+    scene.setRoot(Main.buildApp(newLocale));
     LOG.debug("End switchLang");
   }
 }
