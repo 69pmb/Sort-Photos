@@ -48,6 +48,7 @@ public class DuplicateDialog extends Stage {
     dialog.initOwner(container.getScene().getWindow());
     dialog.initModality(Modality.APPLICATION_MODAL);
     dialog.setTitle(count);
+    dialog.setResizable(false);
     GridPane root = new GridPane();
     root.setVgap(10);
     GridPane gridPane = new GridPane();

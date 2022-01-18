@@ -19,7 +19,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import javafx.scene.transform.Scale;
 import javafx.stage.Screen;
 import pmb.sort.photos.Main;
 
@@ -53,32 +52,22 @@ public final class JavaFxUtils {
     BorderPane.setAlignment(label, Pos.CENTER);
     BorderPane.setAlignment(rotate, Pos.CENTER);
     imageWrapper.getStyleClass().add(styleClass);
-    imageWrapper.setMinWidth(PICTURE_WIDTH);
-    imageWrapper.setPrefWidth(PICTURE_WIDTH);
+    imageWrapper.setMinWidth(PICTURE_WIDTH + 5);
+    imageWrapper.setPrefWidth(PICTURE_WIDTH + 5);
     imageWrapper.setMinHeight(pictureHeight + 60);
     imageWrapper.setPrefHeight(pictureHeight + 60);
-    double height = image.getImage().getHeight();
-    double width = image.getImage().getWidth();
-    double ratio = width > height ? (pictureHeight - 120) / width : PICTURE_WIDTH / height;
-    double pivotX = width / 2.0;
-    double pivotY = height / 2.0;
-    Scale scaleBig = new Scale(ratio, ratio, pivotX, pivotY);
-    Scale scaleSmall;
-    scaleSmall =
-        width > height
-            ? new Scale(PICTURE_WIDTH / width, PICTURE_WIDTH / width, pivotX, pivotY)
-            : new Scale(
-                (pictureHeight - 120) / height, (pictureHeight - 120) / height, pivotX, pivotY);
-    image.getTransforms().add(scaleSmall);
+    image.setFitWidth(PICTURE_WIDTH);
+    image.setFitHeight(pictureHeight);
+    image.setPreserveRatio(true);
     rotate.setOnAction(
         e -> {
           double angle = image.getRotate() - 90;
           if (angle / 90.0 % 2 != 0) {
-            image.getTransforms().remove(scaleSmall);
-            image.getTransforms().add(scaleBig);
+            image.setFitWidth(pictureHeight);
+            image.setFitHeight(PICTURE_WIDTH);
           } else {
-            image.getTransforms().remove(scaleBig);
-            image.getTransforms().add(scaleSmall);
+            image.setFitWidth(PICTURE_WIDTH);
+            image.setFitHeight(pictureHeight);
           }
           image.setRotate(angle);
         });
