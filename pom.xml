@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>11.0.2</javafx.version>
         <mainClass>pmb.sort.photos.Launcher</mainClass>
-        <metadata-extractor.version>2.16.0</metadata-extractor.version>
+        <metadata-extractor.version>2.17.0</metadata-extractor.version>
     </properties>
 
     <dependencies>
